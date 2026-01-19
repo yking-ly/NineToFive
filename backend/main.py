@@ -2,6 +2,7 @@ from fastapi import FastAPI, File, UploadFile, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from typing import Optional, List
 from deep_translator import GoogleTranslator
 import time
 import os
@@ -46,6 +47,7 @@ except Exception as e:
 # ------------------------------------------------------------------
 class ChatRequest(BaseModel):
     query: str
+    collections: Optional[List[str]] = None  # e.g., ["ipc"], ["bns"], ["mapping"], or ["ipc", "bns"]
 
 # ------------------------------------------------------------------
 # Endpoints
@@ -160,8 +162,8 @@ def chat(request: ChatRequest):
         
     start_time = time.time()
     
-    # 1. Retrieve
-    context = rag_service.query_statutes(request.query)
+    # 1. Retrieve (with optional collection filtering)
+    context = rag_service.query_statutes(request.query, collections=request.collections)
     
     # 2. Answer
     answer = rag_service.generate_answer(request.query, context)

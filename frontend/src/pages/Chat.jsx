@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FaUserAstronaut, FaPaperPlane, FaArrowLeft, FaComments, FaRobot, FaUser } from 'react-icons/fa';
+import { FaUserAstronaut, FaPaperPlane, FaArrowLeft, FaComments, FaRobot, FaUser, FaFilter } from 'react-icons/fa';
 import ReactMarkdown from 'react-markdown';
 
 export default function Chat() {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [selectedCollections, setSelectedCollections] = useState(["ipc", "bns", "mapping"]); // All selected by default
     const messagesEndRef = useRef(null);
 
     const scrollToBottom = () => {
@@ -16,6 +17,18 @@ export default function Chat() {
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
+
+    const toggleCollection = (collection) => {
+        setSelectedCollections(prev => {
+            if (prev.includes(collection)) {
+                // Don't allow deselecting all
+                if (prev.length === 1) return prev;
+                return prev.filter(c => c !== collection);
+            } else {
+                return [...prev, collection];
+            }
+        });
+    };
 
     const handleSend = async (text = null) => {
         const query = text || input;
@@ -33,7 +46,10 @@ export default function Chat() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ query: query }),
+                body: JSON.stringify({
+                    query: query,
+                    collections: selectedCollections  // Pass selected filters
+                }),
             });
 
             const data = await response.json();
@@ -42,7 +58,8 @@ export default function Chat() {
                 const aiMsg = {
                     role: 'ai',
                     content: data.answer,
-                    duration: data.duration_seconds
+                    duration: data.duration_seconds,
+                    collections: selectedCollections // Track which collections were searched
                 };
                 setMessages(prev => [...prev, aiMsg]);
             } else {
@@ -175,25 +192,51 @@ export default function Chat() {
 
             {/* Input Area */}
             <footer className="relative z-20 p-4 md:p-6 bg-neutral-950/80 backdrop-blur-xl border-t border-white/5">
-                <div className="max-w-3xl mx-auto relative group">
-                    <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-blue-500/20 to-purple-500/20 blur opacity-0 group-hover:opacity-100 transition duration-500"></div>
-                    <div className="relative flex items-center gap-3 bg-neutral-900 rounded-2xl p-2 border border-white/10 shadow-xl focus-within:border-white/20 transition-colors">
-                        <input
-                            type="text"
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            placeholder="Type a message regarding your legal queries..."
-                            disabled={isLoading}
-                            className="flex-1 bg-transparent border-none outline-none text-white px-4 py-3 placeholder:text-neutral-600 font-medium disabled:opacity-50"
-                        />
-                        <button
-                            onClick={() => handleSend()}
-                            disabled={!input.trim() || isLoading}
-                            className="w-12 h-12 bg-white text-black rounded-xl flex items-center justify-center hover:bg-neutral-200 transition-colors shadow-lg shadow-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {isLoading ? <span className="animate-spin text-lg">↻</span> : <FaPaperPlane className="w-4 h-4" />}
-                        </button>
+                <div className="max-w-3xl mx-auto">
+                    {/* Collection Filter Toggles */}
+                    <div className="flex items-center justify-center gap-2 mb-4">
+                        <span className="text-[10px] uppercase tracking-widest text-neutral-500 font-semibold flex items-center gap-1">
+                            <FaFilter className="w-2.5 h-2.5" /> Search in:
+                        </span>
+                        {[
+                            { id: 'ipc', label: 'IPC', color: 'from-orange-500 to-red-500' },
+                            { id: 'bns', label: 'BNS', color: 'from-blue-500 to-indigo-500' },
+                            { id: 'mapping', label: 'Mapping', color: 'from-green-500 to-emerald-500' }
+                        ].map(col => (
+                            <button
+                                key={col.id}
+                                onClick={() => toggleCollection(col.id)}
+                                className={`px-3 py-1.5 rounded-full text-[11px] font-semibold uppercase tracking-wider transition-all duration-200 border ${selectedCollections.includes(col.id)
+                                        ? `bg-gradient-to-r ${col.color} text-white border-transparent shadow-lg`
+                                        : 'bg-neutral-900 text-neutral-500 border-white/10 hover:border-white/20'
+                                    }`}
+                            >
+                                {col.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Input Box */}
+                    <div className="relative group">
+                        <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-blue-500/20 to-purple-500/20 blur opacity-0 group-hover:opacity-100 transition duration-500"></div>
+                        <div className="relative flex items-center gap-3 bg-neutral-900 rounded-2xl p-2 border border-white/10 shadow-xl focus-within:border-white/20 transition-colors">
+                            <input
+                                type="text"
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                placeholder="Type a message regarding your legal queries..."
+                                disabled={isLoading}
+                                className="flex-1 bg-transparent border-none outline-none text-white px-4 py-3 placeholder:text-neutral-600 font-medium disabled:opacity-50"
+                            />
+                            <button
+                                onClick={() => handleSend()}
+                                disabled={!input.trim() || isLoading}
+                                className="w-12 h-12 bg-white text-black rounded-xl flex items-center justify-center hover:bg-neutral-200 transition-colors shadow-lg shadow-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isLoading ? <span className="animate-spin text-lg">↻</span> : <FaPaperPlane className="w-4 h-4" />}
+                            </button>
+                        </div>
                     </div>
                     <p className="text-center text-[10px] text-neutral-600 mt-4 uppercase tracking-widest font-medium">
                         AI generated responses may vary. Consult a lawyer for serious advice.
