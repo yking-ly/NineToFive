@@ -3,6 +3,7 @@ import Home from './pages/Home';
 import Upload from './pages/Upload';
 import HowToUse from './pages/HowToUse';
 import Chat from './pages/Chat';
+import Settings from './pages/Settings';
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Route path="/how-to-use" element={<HowToUse />} />
         <Route path="/upload" element={<Upload />} />
         <Route path="/chat" element={<Chat />} />
+        <Route path="/settings" element={<Settings />} />
       </Routes>
     </Router>
   )

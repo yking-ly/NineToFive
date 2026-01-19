@@ -33,6 +33,9 @@ export default function Home() {
                     >
                         <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
+                        {/* Background Icon */}
+                        <FaFileUpload className="absolute -bottom-8 -right-8 w-48 h-48 text-white opacity-5 blur-[6px] transform -rotate-12 pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+
                         <div className="relative z-10">
                             <div className="w-12 h-12 rounded-xl bg-neutral-900 border border-white/10 flex items-center justify-center mb-4 shadow-inner group-hover:border-white/30 transition-colors">
                                 <FaFileUpload className="h-5 w-5 text-white" />
@@ -55,6 +58,9 @@ export default function Home() {
                         className="group relative overflow-hidden rounded-2xl glass-card p-6 hover:bg-white/10 transition-all duration-500 hover:scale-105 hover:shadow-white/5 text-left flex flex-col justify-between w-full md:w-72 h-64"
                     >
                         <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+                        {/* Background Icon */}
+                        <FaBalanceScale className="absolute -bottom-8 -right-8 w-48 h-48 text-white opacity-5 blur-[6px] transform -rotate-12 pointer-events-none group-hover:scale-110 transition-transform duration-500" />
 
                         <div className="relative z-10">
                             <div className="w-12 h-12 rounded-xl bg-neutral-900 border border-white/10 flex items-center justify-center mb-4 shadow-inner group-hover:border-white/30 transition-colors">
@@ -81,6 +87,8 @@ export default function Home() {
                         <Link to="https://github.com/yking-ly/NineToFive" className="opacity-60">NineToFive</Link>
                         <span className="w-0.5 h-3 bg-white/10 rounded-full"></span>
                         <Link to="/how-to-use" className="text-white/80 hover:text-white transition-colors hover:underline decoration-white/30 underline-offset-4">How to Use</Link>
+                        <span className="w-0.5 h-3 bg-white/10 rounded-full"></span>
+                        <Link to="/settings" className="text-white/80 hover:text-white transition-colors hover:underline decoration-white/30 underline-offset-4">Settings</Link>
                     </div>
                 </footer>
             </div>

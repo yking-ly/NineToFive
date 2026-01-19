@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { FaCloudUploadAlt, FaFileAlt, FaArrowLeft, FaCheckCircle, FaExclamationCircle, FaSpinner, FaEye, FaAlignLeft } from 'react-icons/fa';
+import { getApiUrl } from '../utils/apiConfig';
 
 export default function Upload() {
     const [uploading, setUploading] = useState(false);
@@ -44,7 +45,8 @@ export default function Upload() {
         formData.append('file', file);
 
         try {
-            const response = await fetch('http://127.0.0.1:5000/api/upload', {
+            const baseUrl = getApiUrl();
+            const response = await fetch(`${baseUrl}/api/upload`, {
                 method: 'POST',
                 body: formData,
             });
