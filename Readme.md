@@ -67,3 +67,49 @@ This project is developed for the **CSI-Tech Hackathon**. All rights reserved.
 
 ---
 *Disclaimer: This tool is intended for informational and educational purposes only. It does not constitute legal advice.*
+
+---
+
+## 💻 Development Setup
+
+This project consists of a **Flask** backend (Python) and a **React** frontend (Vite + Tailwind CSS).
+
+### 1. Backend Setup
+The backend serves the API and runs on port `5000`.
+
+1. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
+2. Activate the virtual environment (if not already active):
+   - Windows: `.\venv\Scripts\activate`
+   - Mac/Linux: `source venv/bin/activate`
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Run the server:
+   ```bash
+   python app.py
+   ```
+   Server will start at `http://127.0.0.1:5000`.
+
+### 2. Frontend Setup
+The frontend is the user interface and runs on port `5173`.
+
+1. Navigate to the frontend directory:
+   ```bash
+   cd frontend
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
+   Access the app at `http://localhost:5173`.
+
+### 3. Connecting Them
+The frontend is configured to fetch data from `http://127.0.0.1:5000`. Ensure the backend is running before using the frontend.
