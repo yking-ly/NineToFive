@@ -26,41 +26,67 @@ export default function HowToUse() {
     }, [])
 
     return (
-        <div className="min-h-screen bg-slate-900 text-white p-6 relative">
-            <Link to="/" className="fixed top-6 left-6 text-slate-400 hover:text-white transition-colors flex items-center z-50">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Back to Home
-            </Link>
+        <div className="min-h-screen bg-neutral-950 text-white p-6 relative selection:bg-white selection:text-black">
 
-            <div className="absolute top-6 right-6 z-50 flex gap-2">
-                <button
-                    onClick={() => fetchContent('en')}
-                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm font-semibold border border-slate-700 transition-colors focus:ring-2 focus:ring-blue-500"
-                >
-                    English
-                </button>
-                <button
-                    onClick={() => fetchContent('hi')}
-                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm font-semibold border border-slate-700 transition-colors focus:ring-2 focus:ring-blue-500"
-                >
-                    हिंदी (Hindi)
-                </button>
+            {/* Background elements */}
+            <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+                <div className="absolute top-[-20%] right-[-10%] w-[800px] h-[800px] bg-white/5 rounded-full blur-[180px]"></div>
+                <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-white/5 rounded-full blur-[150px]"></div>
             </div>
 
-            <div className="max-w-3xl mx-auto pt-16">
-                <div className="bg-slate-800/50 p-8 rounded-2xl shadow-xl border border-slate-700 backdrop-blur-sm min-h-[400px]">
+            <nav className="relative z-50 flex justify-between items-center max-w-5xl mx-auto mb-10 pt-4">
+                <Link to="/" className="text-neutral-400 hover:text-white transition-colors flex items-center group">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    <span className="font-medium tracking-wide">Back to Home</span>
+                </Link>
+
+                <div className="flex gap-1 bg-neutral-900/80 backdrop-blur-md p-1.5 rounded-xl border border-white/10 shadow-xl">
+                    <button
+                        onClick={() => fetchContent('en')}
+                        className="px-4 py-2 hover:bg-white/10 rounded-lg text-sm font-medium transition-all text-white focus:outline-none focus:ring-1 focus:ring-white/20"
+                    >
+                        English
+                    </button>
+                    <div className="w-px bg-white/10 my-1 mx-1"></div>
+                    <button
+                        onClick={() => fetchContent('hi')}
+                        className="px-4 py-2 hover:bg-white/10 rounded-lg text-sm font-medium transition-all text-white focus:outline-none focus:ring-1 focus:ring-white/20"
+                    >
+                        हिंदी (Hindi)
+                    </button>
+                </div>
+            </nav>
+
+            <div className="max-w-4xl mx-auto relative z-10 animate-fade-in-up">
+                <div className="glass-card rounded-3xl p-8 md:p-14 min-h-[600px] border border-white/10 shadow-2xl bg-neutral-900/30">
+                    <div className="flex items-center justify-between mb-8 border-b border-white/5 pb-6">
+                        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-neutral-400">User Guide</h1>
+                        <div className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
+                    </div>
+
                     {loading ? (
-                        <div className="flex flex-col items-center justify-center h-64 text-slate-400 space-y-4">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-                            <p>Loading translation...</p>
+                        <div className="flex flex-col items-center justify-center h-80 text-neutral-500 space-y-6">
+                            <div className="animate-spin rounded-full h-12 w-12 border-2 border-white/10 border-t-white"></div>
+                            <p className="text-xs tracking-[0.2em] uppercase font-medium">Translating content...</p>
                         </div>
                     ) : (
-                        <article className="prose prose-invert prose-lg max-w-none">
+                        <article className="prose prose-invert prose-lg max-w-none 
+                            prose-headings:text-white prose-headings:font-semibold prose-headings:tracking-tight
+                            prose-h1:text-4xl prose-h2:text-2xl prose-h3:text-xl
+                            prose-p:text-neutral-300 prose-p:leading-relaxed
+                            prose-strong:text-white prose-strong:font-bold
+                            prose-li:text-neutral-300 prose-li:marker:text-white/50
+                            prose-blockquote:border-l-white/20 prose-blockquote:bg-white/5 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-blockquote:not-italic
+                            prose-a:text-white prose-a:underline prose-a:decoration-white/30 prose-a:underline-offset-4 hover:prose-a:decoration-white">
                             <ReactMarkdown>{content}</ReactMarkdown>
                         </article>
                     )}
+                </div>
+
+                <div className="text-center mt-12 text-neutral-600 text-sm">
+                    Is This Legal? &copy; 2026
                 </div>
             </div>
         </div>
