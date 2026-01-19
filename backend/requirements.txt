@@ -1,3 +1,5 @@
 flask
 flask-cors
 deep-translator
+requests
+base64
