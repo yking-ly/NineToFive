@@ -1,0 +1,25 @@
+# Vector Store
+chromadb>=0.4.22
+
+# Embeddings
+sentence-transformers>=2.2.2
+
+# PDF Processing
+PyMuPDF>=1.23.0
+pdfplumber>=0.10.0
+
+# Redis
+redis>=5.0.0
+
+# API
+fastapi>=0.109.0
+uvicorn>=0.27.0
+python-multipart>=0.0.6
+
+# Utils
+python-dotenv>=1.0.0
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+
+# Language Detection
+langdetect>=1.0.9

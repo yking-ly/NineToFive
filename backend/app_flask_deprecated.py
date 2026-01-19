@@ -115,5 +115,45 @@ def upload_file():
         except Exception as e:
             return jsonify({"error": str(e)}), 500
 
+# ---------------------------------------------------------
+# RAG / CHAT ENDPOINTS
+# ---------------------------------------------------------
+try:
+    from rag_service import RAGService
+    rag_service = RAGService()
+    print("[Backend] RAG Service connected successfully.")
+except Exception as e:
+    print(f"[Backend Warning] Could not load RAG Service: {e}")
+    rag_service = None
+
+@app.route('/api/chat', methods=['POST'])
+def chat():
+    if not rag_service:
+        return jsonify({"error": "RAG Service not initialized"}), 503
+        
+    data = request.json
+    query = data.get('query')
+    
+    if not query:
+        return jsonify({"error": "Query is required"}), 400
+        
+    start_time = time.time()
+    
+    # 1. Retrieve Context
+    context = rag_service.query_statutes(query)
+    
+    # 2. Generate Answer (Simulated or LLM)
+    answer = rag_service.generate_answer(query, context)
+    
+    duration = time.time() - start_time
+    
+    return jsonify({
+        "status": "success",
+        "query": query,
+        "answer": answer,
+        "context": context, # Return raw context for debugging/UI citations
+        "duration_seconds": round(duration, 3)
+    })
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

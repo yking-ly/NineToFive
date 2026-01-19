@@ -1,5 +1,9 @@
-flask
-flask-cors
+fastapi
+uvicorn
+python-multipart
 deep-translator
 requests
-base64
+chromadb
+sentence-transformers
+numpy
+flask-cors
