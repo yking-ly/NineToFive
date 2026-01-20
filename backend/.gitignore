@@ -1,1 +1,13 @@
-Lib
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+.env
+Lib/
+info/
+model/
+chroma_db_shard_*/
+*_cache.json
