@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { FaCloudUploadAlt, FaFileAlt, FaArrowLeft, FaCheckCircle, FaExclamationCircle, FaSpinner, FaEye, FaAlignLeft } from 'react-icons/fa';
 import { getApiUrl } from '../utils/apiConfig';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function Upload() {
     const [uploading, setUploading] = useState(false);
@@ -10,6 +11,9 @@ export default function Upload() {
     const [uploadedData, setUploadedData] = useState(null);
     const [viewMode, setViewMode] = useState(false); // New state to toggle full view
     const fileInputRef = useRef(null);
+
+    // Global Language Context
+    const { t, language, toggleLanguage } = useLanguage();
 
     const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB
 
@@ -39,7 +43,7 @@ export default function Upload() {
 
         setUploading(true);
         setStatus(null);
-        setMessage('Uploading...');
+        setMessage(t.processing); // Use translation
 
         const formData = new FormData();
         formData.append('file', file);
@@ -89,16 +93,26 @@ export default function Upload() {
             <nav className="relative z-20 p-6 flex justify-between items-center container mx-auto flex-shrink-0">
                 <Link to="/" className="text-neutral-500 hover:text-white transition-colors flex items-center gap-2 group text-sm font-medium tracking-wide uppercase">
                     <FaArrowLeft className="group-hover:-translate-x-1 transition-transform" />
-                    Back to Dashboard
+                    {t.backDashboard}
                 </Link>
-                {viewMode && (
+
+                <div className="flex items-center gap-4">
                     <button
-                        onClick={() => { setViewMode(false); setStatus(null); setUploadedData(null); }}
-                        className="text-xs font-bold bg-neutral-800 hover:bg-neutral-700 px-4 py-3 rounded-lg transition-colors border border-white/10 uppercase tracking-widest shadow-lg hover:shadow-white/5"
+                        onClick={toggleLanguage}
+                        className="px-3 py-2 rounded-lg bg-neutral-900 border border-white/10 text-xs font-semibold tracking-wide text-neutral-300 hover:text-white hover:bg-neutral-800 transition-all flex items-center gap-2 shadow-sm"
                     >
-                        Upload New File
+                        <span>{language === 'en' ? "🇮🇳 Hindi" : "🇬🇧 English"}</span>
                     </button>
-                )}
+
+                    {viewMode && (
+                        <button
+                            onClick={() => { setViewMode(false); setStatus(null); setUploadedData(null); }}
+                            className="text-xs font-bold bg-neutral-800 hover:bg-neutral-700 px-4 py-2 rounded-lg transition-colors border border-white/10 uppercase tracking-widest shadow-lg hover:shadow-white/5"
+                        >
+                            {t.uploadNew}
+                        </button>
+                    )}
+                </div>
             </nav>
 
             <div className={`relative z-10 container mx-auto px-6 flex flex-col ${viewMode ? 'h-[calc(100vh-100px)] pb-6' : 'h-screen items-center justify-center'}`}>
@@ -107,11 +121,11 @@ export default function Upload() {
                     /* UPLOAD SECTION */
                     <>
                         <h1 className="text-4xl md:text-5xl font-black mb-6 text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 tracking-tight text-center">
-                            Document Analysis
+                            {t.docAnalysis}
                         </h1>
 
                         <p className="text-neutral-400 mb-12 max-w-md text-center text-lg font-light leading-relaxed">
-                            Upload your legal documents for instant summary and risk assessment using our advanced RAG engine.
+                            {t.uploadDescription}
                         </p>
 
                         <input
@@ -131,7 +145,7 @@ export default function Upload() {
                             {uploading && (
                                 <div className="absolute inset-0 bg-neutral-950/80 z-20 flex flex-col items-center justify-center backdrop-blur-sm">
                                     <FaSpinner className="animate-spin h-10 w-10 text-white mb-4" />
-                                    <p className="text-white font-medium tracking-wide animate-pulse">Processing Document...</p>
+                                    <p className="text-white font-medium tracking-wide animate-pulse">{t.processing}</p>
                                 </div>
                             )}
 
@@ -140,9 +154,9 @@ export default function Upload() {
                                     <div className="w-20 h-20 mx-auto bg-red-500/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(239,68,68,0.3)]">
                                         <FaExclamationCircle className="h-10 w-10 text-red-500" />
                                     </div>
-                                    <h3 className="text-xl font-bold text-white mb-2">Upload Failed</h3>
+                                    <h3 className="text-xl font-bold text-white mb-2">{t.uploadFailed}</h3>
                                     <p className="text-red-400 mb-6">{message}</p>
-                                    <p className="text-xs text-neutral-600 mt-6 uppercase tracking-widest click-to-upload">Click to try again</p>
+                                    <p className="text-xs text-neutral-600 mt-6 uppercase tracking-widest click-to-upload">{t.clickRetry}</p>
                                 </div>
                             ) : (
                                 // Default Status
@@ -151,8 +165,8 @@ export default function Upload() {
                                         <FaCloudUploadAlt className="h-10 w-10 text-white/80 group-hover:text-white transition-colors" />
                                     </div>
 
-                                    <h3 className="text-xl font-bold text-white mb-2">Drop your files here</h3>
-                                    <p className="text-neutral-500 mb-8 font-medium">or <span className="text-white underline underline-offset-4 decoration-white/30 hover:decoration-white transition-all">browse files</span> from your computer</p>
+                                    <h3 className="text-xl font-bold text-white mb-2">{t.dropFiles}</h3>
+                                    <p className="text-neutral-500 mb-8 font-medium">{t.or} <span className="text-white underline underline-offset-4 decoration-white/30 hover:decoration-white transition-all">{t.browseFiles}</span> {t.fromDevice}</p>
 
                                     <div className="flex justify-center gap-4 text-xs font-semibold tracking-widest text-neutral-600 uppercase">
                                         <span className="bg-neutral-900/80 px-3 py-1.5 rounded-md border border-white/5 flex items-center gap-2">
@@ -178,7 +192,7 @@ export default function Upload() {
                         <div className="flex-1 glass-card rounded-3xl overflow-hidden flex flex-col border border-white/10 bg-neutral-900/50 h-full">
                             <div className="p-4 border-b border-white/5 flex items-center gap-3 bg-white/5 flex-shrink-0">
                                 <FaEye className="text-neutral-400" />
-                                <h3 className="text-sm font-bold tracking-wider uppercase text-neutral-300">Document Preview</h3>
+                                <h3 className="text-sm font-bold tracking-wider uppercase text-neutral-300">{t.docPreview}</h3>
                             </div>
                             <div className="flex-1 bg-neutral-900 relative">
                                 {uploadedData?.driveUrl ? (
@@ -203,8 +217,8 @@ export default function Upload() {
                                     <FaAlignLeft className="text-indigo-400" />
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-bold text-white">AI Summary</h2>
-                                    <p className="text-xs text-neutral-500 uppercase tracking-wider">Generated by Advanced RAG</p>
+                                    <h2 className="text-xl font-bold text-white">{t.aiSummary}</h2>
+                                    <p className="text-xs text-neutral-500 uppercase tracking-wider">{t.generatedBy}</p>
                                 </div>
                             </div>
 
@@ -218,9 +232,9 @@ export default function Upload() {
 
                             <div className="mt-6 pt-6 border-t border-white/10 flex-shrink-0">
                                 <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
-                                    <h4 className="text-yellow-500 text-xs font-bold uppercase tracking-wide mb-2">Legal Disclaimer</h4>
+                                    <h4 className="text-yellow-500 text-xs font-bold uppercase tracking-wide mb-2">{t.disclaimer}</h4>
                                     <p className="text-neutral-400 text-xs leading-relaxed">
-                                        This summary is generated by AI and may not be 100% accurate. Please review the full document for critical information.
+                                        {t.disclaimerText}
                                     </p>
                                 </div>
                             </div>

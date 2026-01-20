@@ -5,17 +5,21 @@ import HowToUse from './pages/HowToUse';
 import Chat from './pages/Chat';
 import Settings from './pages/Settings';
 
+import { LanguageProvider } from './context/LanguageContext';
+
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/how-to-use" element={<HowToUse />} />
-        <Route path="/upload" element={<Upload />} />
-        <Route path="/chat" element={<Chat />} />
-        <Route path="/settings" element={<Settings />} />
-      </Routes>
-    </Router>
+    <LanguageProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/how-to-use" element={<HowToUse />} />
+          <Route path="/upload" element={<Upload />} />
+          <Route path="/chat" element={<Chat />} />
+          <Route path="/settings" element={<Settings />} />
+        </Routes>
+      </Router>
+    </LanguageProvider>
   )
 }
 

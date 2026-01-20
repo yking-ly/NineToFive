@@ -4,6 +4,21 @@ python-multipart
 deep-translator
 requests
 chromadb
+langchain
+langchain-community
 sentence-transformers
+pypdf
+python-docx
+llama-cpp-python
+onnxruntime-gpu
+langchain-text-splitters
+langchain-core
+einops
+torch
+torchvision
+torchaudio
+flask-socketio
+gevent
 numpy
 flask-cors
+--index-url https://download.pytorch.org/whl/cu124
