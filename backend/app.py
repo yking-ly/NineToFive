@@ -231,7 +231,8 @@ from flask_socketio import SocketIO, emit
 import retrieval
 
 # Use threading mode to avoid compatibility issues with PyTorch/Gevent
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+# Force 'polling' to prevent WebSocket upgrade crashes on Windows/Werkzeug
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading', transports=['polling'])
 
 @socketio.on('stop_generation')
 def handle_stop(data=None):
@@ -375,4 +376,5 @@ if __name__ == '__main__':
 
     # Use socketio.run instead of app.run
     print("Starting Server with SocketIO...")
-    socketio.run(app, debug=True, port=5000)
+    # allow_unsafe_werkzeug=True fixes "write() before start_response" in some envs
+    socketio.run(app, debug=True, port=5000, allow_unsafe_werkzeug=True)
