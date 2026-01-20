@@ -11,3 +11,4 @@ info/
 model/
 chroma_db_shard_*/
 *_cache.json
+backend/embedding_cache.json
