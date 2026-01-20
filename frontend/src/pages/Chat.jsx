@@ -47,11 +47,14 @@ export default function Chat() {
     // Initialize Socket
     useEffect(() => {
         socketRef.current = io('http://127.0.0.1:5000', {
-            transports: ['websocket', 'polling'],
+            transports: ['polling'], // Force polling to match backend config
+            upgrade: false, // Prevent upgrade attempts to websocket
             reconnection: true,
-            reconnectionAttempts: 5,
+            reconnectionAttempts: 10,
             reconnectionDelay: 1000,
-            timeout: 10000,
+            timeout: 60000, // Increase connection timeout
+            pingTimeout: 60000, // Wait longer for ping before assuming disconnect
+            pingInterval: 25000 // Send pings less frequently but keep alive
         });
 
         const socket = socketRef.current;

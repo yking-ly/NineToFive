@@ -189,8 +189,8 @@ def deduplicate_results(results: List[tuple]) -> List[tuple]:
     seen_contents = set()
     
     for doc, score in results:
-        # Create a simple hash of the content (first 200 chars)
-        content_hash = hash(doc.page_content[:200])
+        # Create a hash of the ALL content to avoid false positives on boilerplate headers
+        content_hash = hash(doc.page_content)
         
         if content_hash not in seen_contents:
             seen_contents.add(content_hash)
@@ -237,9 +237,21 @@ def query_docs(query_text: str, chat_history: List[dict] = [], n_results: int = 
             'bsa': 'Bharatiya Sakshya Adhiniyam (BSA)',
         }
         
-        # Adjust n_results for Kira (Knowledge at tip of tongue = more context)
+        # Adjust n_results for specific personas
         if persona == 'kira':
             n_results = max(n_results, 6)
+        else:
+            # "There will be previous context but not chaining rather a full on search"
+            # We KEEP chat_history for the LLM prompt (Context), but we don't use it for 'chained' retrieval topics.
+            print("Chat Mode: Deep search enabled with Context.")
+            
+            # "Full on search" -> Increase retrieval depth significantly
+            n_results = 15
+            
+            # Force "complex" analysis to trigger query expansion (Search Throughout)
+            # We wrap the original analyze function to override if needed, 
+            # or we just handle it in the expansion block later.
+            # Ideally, we just let the logic below handle it, but we'll ensure we search wide.
 
         
         # 0. Handle Query Translation (Auto -> EN for retrieval)
@@ -314,8 +326,9 @@ def query_docs(query_text: str, chat_history: List[dict] = [], n_results: int = 
                 except Exception as e:
                     print(f"Error querying shard: {e}")
         
-        # Strategy 2: If query is complex, also search with expanded keywords
-        if query_complexity['type'] in ['complex', 'comparative']:
+        # Strategy 2: If query is complex OR we are in 'search throughout' mode (default chat), 
+        # search with expanded keywords
+        if query_complexity['type'] in ['complex', 'comparative'] or persona != 'kira':
             expanded_queries = generate_query_expansions(effective_query, query_complexity)
             print(f"Expanding search with {len(expanded_queries)} additional queries...")
             
@@ -334,13 +347,17 @@ def query_docs(query_text: str, chat_history: List[dict] = [], n_results: int = 
         # Sort by score (lower is better for L2)
         all_results.sort(key=lambda x: x[1])
         
-        # Smart filtering: Apply relevance threshold
-        relevance_threshold = get_relevance_threshold(query_complexity)
-        filtered_results = [r for r in all_results if r[1] <= relevance_threshold]
-        
-        if not filtered_results:
-            print(f"No results below threshold {relevance_threshold}, using top results anyway")
-            filtered_results = all_results
+        # Smart filtering: Apply relevance threshold ONLY for Kira (who needs to be brief/precise)
+        # For Chat ("Search Throughout"), we want maximum recall, so we skip thresholding.
+        if persona == 'kira':
+            relevance_threshold = get_relevance_threshold(query_complexity)
+            filtered_results = [r for r in all_results if r[1] <= relevance_threshold]
+            if not filtered_results:
+                print(f"No results below threshold {relevance_threshold}, using top results anyway")
+                filtered_results = all_results
+        else:
+             # Chat Mode: No filtering, take everything to ensure we find specific sections
+             filtered_results = all_results
         
         # Take top K from filtered results
         top_results = filtered_results[:n_results]
