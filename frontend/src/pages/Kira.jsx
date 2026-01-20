@@ -169,40 +169,57 @@ export default function Kira() {
     };
 
     // =================================================================================
-    // 4. SMOOTH TTS STREAMING (No pauses at punctuation)
+    // 4. ChatGPT-4o STYLE: Real-time Streaming with Grammar Intelligence
     // =================================================================================
     const handleTTSStreaming = (textChunk) => {
         sentenceBufferRef.current += textChunk;
 
-        // SMOOTH STRATEGY: Accumulate words, speak in natural chunks of ~10-15 words
-        // This avoids awkward pauses at commas and creates flowing speech
-        const words = sentenceBufferRef.current.split(/\s+/);
+        // AGGRESSIVE + SMART STRATEGY: Speak quickly but respect grammar
+        // Priority 1: Sentences (. ! ?) - Major boundaries, speak immediately
+        // Priority 2: Phrases (,  ; :) - Minor boundaries, speak if buffer has content
+        // Priority 3: Word count (6-8 words) - Speak to maintain flow
 
-        // Speak when we have enough words (10-15) OR hit a final sentence ending
-        const hasFinalEnding = /[.!?।]\s*$/.test(sentenceBufferRef.current);
+        const buffer = sentenceBufferRef.current;
+        const words = buffer.split(/\s+/).filter(w => w.length > 0);
 
-        if (words.length >= 10 || (hasFinalEnding && words.length >= 5)) {
-            // Determine how many words to speak
-            let wordsToSpeak;
+        // Check for grammatical boundaries
+        const hasSentenceEnd = /[.!?।]\s*$/.test(buffer);
+        const hasPhraseEnd = /[,;:]\s*$/.test(buffer);
 
-            if (hasFinalEnding) {
-                // Speak everything up to and including the final punctuation
-                wordsToSpeak = words.length;
-            } else {
-                // Speak 10-12 words, keeping a few in buffer for smooth continuation
-                wordsToSpeak = Math.min(12, words.length - 3);
+        let shouldSpeak = false;
+        let keepInBuffer = 0; // Words to keep for smooth continuation
+
+        // Decision tree for when to speak
+        if (hasSentenceEnd) {
+            // Complete sentence - speak everything
+            shouldSpeak = true;
+            keepInBuffer = 0;
+        } else if (hasPhraseEnd && words.length >= 4) {
+            // Phrase boundary (comma/semicolon) with enough content
+            shouldSpeak = true;
+            keepInBuffer = 0; // Speak the phrase cleanly
+        } else if (words.length >= 8) {
+            // Long buffer without punctuation - speak most of it
+            shouldSpeak = true;
+            keepInBuffer = 2; // Keep last 2 words for smoother continuation
+        } else if (words.length >= 6 && /[,;:]/.test(buffer)) {
+            // Medium buffer with a comma somewhere
+            shouldSpeak = true;
+            keepInBuffer = 1;
+        }
+
+        if (shouldSpeak && words.length > keepInBuffer) {
+            const wordsToSpeak = words.slice(0, words.length - keepInBuffer);
+            const wordsToKeep = words.slice(words.length - keepInBuffer);
+
+            const textToSpeak = wordsToSpeak.join(' ').trim();
+
+            if (textToSpeak.length > 0) {
+                // Let TTS engine handle natural pacing via punctuation in the text itself
+                speakText(textToSpeak);
             }
 
-            if (wordsToSpeak > 0) {
-                const textToSpeak = words.slice(0, wordsToSpeak).join(' ');
-                const remainder = words.slice(wordsToSpeak).join(' ');
-
-                if (textToSpeak.trim().length > 0) {
-                    speakText(textToSpeak.trim());
-                }
-
-                sentenceBufferRef.current = remainder;
-            }
+            sentenceBufferRef.current = wordsToKeep.join(' ');
         }
     };
 
@@ -211,13 +228,32 @@ export default function Kira() {
         const utterance = new SpeechSynthesisUtterance(text);
 
         const voices = synthRef.current.getVoices();
-        // Prefer "Natural" voices if available
-        let selectedVoice = voices.find(v => v.name.includes("Google US English")) || voices.find(v => v.lang === 'en-US');
-        if (language === 'hi') selectedVoice = voices.find(v => v.lang.includes('hi')) || selectedVoice;
+
+        let selectedVoice = null;
+
+        if (language === 'hi') {
+            // Priority: Hindi voice for Devanagari script
+            selectedVoice = voices.find(v => v.lang.includes('hi')) ||
+                voices.find(v => v.lang === 'hi-IN') ||
+                voices.find(v => v.name.includes('Hindi'));
+        } else {
+            // English (or 'hi-romanized' which effectively reads as English text)
+            // Priority: Indian English for the requested "Indian Accent"
+            selectedVoice = voices.find(v => v.lang === 'en-IN' || v.lang === 'en_IN') ||
+                voices.find(v => v.name.includes('India') || v.name.includes('Indian'));
+
+            // Fallback to US English if Indian English is not available
+            if (!selectedVoice) {
+                selectedVoice = voices.find(v => v.name.includes("Google US English")) ||
+                    voices.find(v => v.lang === 'en-US');
+            }
+        }
 
         if (selectedVoice) utterance.voice = selectedVoice;
-        utterance.rate = 1.1;
-        utterance.pitch = 1.05; // Slightly authoritative
+
+        // Natural human-like pacing (comfortable listening speed)
+        utterance.rate = 1.0; // Reset to normal speed for clearer Indian accent articulation
+        utterance.pitch = 1.0; // Neutral, professional tone
 
         synthRef.current.speak(utterance);
     };

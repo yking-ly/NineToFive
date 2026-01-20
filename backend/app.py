@@ -234,7 +234,7 @@ import retrieval
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 @socketio.on('stop_generation')
-def handle_stop(data):
+def handle_stop(data=None):
     """
     Stops the current generation for the requesting user.
     """
@@ -319,30 +319,44 @@ def handle_message(data):
             text = re.sub(r'^\s*\d+\.\s+', '', text, flags=re.MULTILINE)
             # Remove links [text](url)
             text = re.sub(r'\[([^]]+)\]\([^)]+\)', r'\1', text)
-            # Clean up spaces
-            text = re.sub(r'\s+', ' ', text)
-            return text.strip()
-        
+            # Clean up spaces BUT preserve newlines for natural TTS pauses
+            # Collapse only horizontal whitespace (spaces, tabs)
+            text = re.sub(r'[ \t]+', ' ', text)
+            return text
+    
+        import re
+
         # Stream the answer chunks
         full_response = ""
+        buffer = ""
         for chunk in answer_stream:
             # Check for interruption signal
             if not active_requests.get(request.sid, True):
                 print(f"⚠️ Generation interrupted by user {request.sid}")
                 break
             
-            # Strip markdown for Kira persona to ensure clean TTS
-            if persona == 'kira':
-                chunk = strip_markdown(chunk)
-                
             full_response += chunk
-            emit('response_chunk', chunk)
+            
+            if persona == 'kira':
+                buffer += chunk
+                # Split by sentence delimiters (English and Hindi danda)
+                parts = re.split(r'([.!?\n।]+)', buffer)
+                if len(parts) > 1:
+                    for i in range(0, len(parts) - 1, 2):
+                        sentence = parts[i] + parts[i+1]
+                        emit('response_chunk', strip_markdown(sentence))
+                    buffer = parts[-1]
+            else:
+                emit('response_chunk', chunk)
             
             # Yield control to allow other threads to run
             socketio.sleep(0) 
 
+        if persona == 'kira' and buffer:
+            emit('response_chunk', strip_markdown(buffer))
+
         emit('response_complete')
-        
+    
     except Exception as e:
         emit('error', {'error': str(e)})
 
@@ -358,7 +372,7 @@ if __name__ == '__main__':
         print("Models loaded successfully.")
     except Exception as e:
         print(f"Error preloading models: {e}")
-    
+
     # Use socketio.run instead of app.run
     print("Starting Server with SocketIO...")
     socketio.run(app, debug=True, port=5000)
