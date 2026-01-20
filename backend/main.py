@@ -207,6 +207,138 @@ def chat(request: ChatRequest):
         "cached": False
     }
 
+# ------------------------------------------------------------------
+# Chat History Endpoints
+# ------------------------------------------------------------------
+
+class CreateChatRequest(BaseModel):
+    name: Optional[str] = "New Chat"
+
+class RenameChatRequest(BaseModel):
+    name: str
+
+class ChatMessageRequest(BaseModel):
+    query: str
+    chat_id: str
+    collections: Optional[List[str]] = None
+    language: Optional[str] = "en"
+
+@app.get("/api/chats")
+def list_chats():
+    """List all chat sessions."""
+    if not rag_service or not rag_service.cache.enabled:
+        return {"status": "error", "message": "Cache service not available", "chats": []}
+    
+    chats = rag_service.cache.list_chats()
+    return {"status": "success", "chats": chats}
+
+@app.post("/api/chats")
+def create_chat(request: CreateChatRequest = None):
+    """Create a new chat session."""
+    if not rag_service or not rag_service.cache.enabled:
+        raise HTTPException(status_code=500, detail="Cache service not available")
+    
+    import uuid
+    chat_id = str(uuid.uuid4())[:8]  # Short ID
+    name = request.name if request else "New Chat"
+    
+    chat = rag_service.cache.create_chat(chat_id, name)
+    if chat:
+        return {"status": "success", "chat": chat}
+    raise HTTPException(status_code=500, detail="Failed to create chat")
+
+@app.get("/api/chats/{chat_id}")
+def get_chat(chat_id: str):
+    """Get a specific chat with all messages."""
+    if not rag_service or not rag_service.cache.enabled:
+        raise HTTPException(status_code=500, detail="Cache service not available")
+    
+    chat = rag_service.cache.get_chat(chat_id)
+    if chat:
+        return {"status": "success", "chat": chat}
+    raise HTTPException(status_code=404, detail="Chat not found")
+
+@app.put("/api/chats/{chat_id}/rename")
+def rename_chat(chat_id: str, request: RenameChatRequest):
+    """Rename a chat."""
+    if not rag_service or not rag_service.cache.enabled:
+        raise HTTPException(status_code=500, detail="Cache service not available")
+    
+    success = rag_service.cache.rename_chat(chat_id, request.name)
+    if success:
+        return {"status": "success", "message": "Chat renamed"}
+    raise HTTPException(status_code=404, detail="Chat not found")
+
+@app.delete("/api/chats/{chat_id}")
+def delete_chat(chat_id: str):
+    """Delete a chat."""
+    if not rag_service or not rag_service.cache.enabled:
+        raise HTTPException(status_code=500, detail="Cache service not available")
+    
+    success = rag_service.cache.delete_chat(chat_id)
+    if success:
+        return {"status": "success", "message": "Chat deleted"}
+    raise HTTPException(status_code=404, detail="Chat not found")
+
+@app.post("/api/chat/message")
+def send_chat_message(request: ChatMessageRequest):
+    """Send a message in a specific chat and get response."""
+    if not rag_service:
+        raise HTTPException(status_code=500, detail="RAG Service not available")
+    
+    start_time = time.time()
+    
+    # Add user message to chat history
+    if rag_service.cache.enabled:
+        rag_service.cache.add_message(request.chat_id, "user", request.query)
+    
+    # Generate cache key
+    cache_key = f"answer:{request.query}:{sorted(request.collections) if request.collections else 'all'}:{request.language}"
+    
+    # Check cache
+    if rag_service.cache.enabled:
+        cached_answer = rag_service.cache.client.get(cache_key)
+        if cached_answer:
+            print(f"[Cache] FULL ANSWER HIT for: {request.query[:30]}...")
+            cached_data = json.loads(cached_answer)
+            # Add AI response to chat history
+            rag_service.cache.add_message(request.chat_id, "assistant", cached_data["answer"])
+            duration = time.time() - start_time
+            return {
+                "status": "success",
+                "query": request.query,
+                "answer": cached_data["answer"],
+                "context": cached_data["context"],
+                "duration_seconds": round(duration, 3),
+                "cached": True
+            }
+    
+    # RAG: Retrieve + Generate
+    context = rag_service.query_statutes(request.query, collections=request.collections, language=request.language)
+    answer = rag_service.generate_answer(request.query, context)
+    
+    duration = time.time() - start_time
+    
+    # Add AI response to chat history
+    if rag_service.cache.enabled:
+        rag_service.cache.add_message(request.chat_id, "assistant", answer)
+        # Cache the response
+        try:
+            cache_data = json.dumps({"answer": answer, "context": context})
+            rag_service.cache.client.setex(cache_key, 3600, cache_data)
+        except Exception as e:
+            print(f"[Cache Warning] Failed to cache answer: {e}")
+    
+    return {
+        "status": "success",
+        "query": request.query,
+        "answer": answer,
+        "context": context,
+        "duration_seconds": round(duration, 3),
+        "cached": False
+    }
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=5000)
+

@@ -128,14 +128,25 @@ class OllamaService:
         except Exception as e:
             return f"[LLM Error] {str(e)}"
     
-    def generate_legal_answer(self, query: str, context: dict) -> str:
+    def generate_legal_answer(self, query: str, context: dict, response_language: str = 'en') -> str:
         """
         Generate a legal answer using retrieved context.
         
-        This is the main RAG integration point.
+        Args:
+            query: The user's question
+            context: Retrieved context from RAG
+            response_language: 'en', 'hi', or 'hinglish'
         """
         # Build context string from retrieved results
         context_parts = []
+        
+        # Quick mapping (instant lookup) - prioritize this
+        if context.get("quick_mapping"):
+            for qm in context["quick_mapping"]:
+                context_parts.append(
+                    f"[EXACT MATCH] IPC Section {qm.get('ipc')} = BNS Section {qm.get('bns')} "
+                    f"(Category: {qm.get('category', 'Unknown')})"
+                )
         
         if context.get("mapping"):
             for item in context["mapping"][:2]:
@@ -161,17 +172,42 @@ class OllamaService:
                     f"{item.get('text', '')[:500]}"
                 )
         
+        # Add Case Law context for precedents
+        if context.get("case_law"):
+            for item in context["case_law"][:2]:  # Top 2 cases
+                meta = item.get("metadata", {})
+                case_title = meta.get("case_title", "Unknown Case")
+                case_date = meta.get("case_date", "")
+                year = meta.get("year", "")
+                sections = meta.get("sections_mentioned", "")
+                context_parts.append(
+                    f"[CASE LAW] {case_title} ({case_date or year})\n"
+                    f"Sections referenced: {sections}\n"
+                    f"Excerpt: {item.get('text', '')[:400]}"
+                )
+        
         context_str = "\n\n".join(context_parts)
         
-        # System prompt for legal assistant
-        system_prompt = """You are an expert Indian legal assistant. Your role is to:
+        # System prompt for legal assistant - varies by response language
+        base_system = """You are an expert Indian legal assistant. Your role is to:
 1. Explain legal concepts clearly and accurately
 2. Reference specific IPC/BNS sections when relevant
 3. Highlight the transition from IPC to BNS (new criminal law)
-4. Be helpful but remind users to consult a lawyer for serious matters
+4. Cite relevant case law precedents when available
+5. Be helpful but remind users to consult a lawyer for serious matters
 
-Use the provided context to answer. If the context doesn't cover the question, say so.
+Use the provided context to answer. If case law is provided, reference it for precedents.
 Format your answer with clear headings and bullet points where appropriate."""
+
+        # Adjust system prompt based on response language
+        if response_language == 'hinglish':
+            system_prompt = base_system + """
+
+IMPORTANT: Respond in HINGLISH (Hindi words written in English/Roman letters, NOT Devanagari script).
+Example: "Murder ki saza maut ya umar kaid hai. IPC Section 302 ke tahat..."
+Keep legal terms and section numbers in English. Use common Hindi words in Roman script."""
+        else:
+            system_prompt = base_system
 
         user_prompt = f"""Question: {query}
 

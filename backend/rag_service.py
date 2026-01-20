@@ -76,6 +76,7 @@ class RAGService:
             language: Language filter - "en" (English), "hi" (Hindi), or "all".
         """
         # Default to all collections if not specified
+        # NOTE: case_law disabled - collection corrupted, needs re-ingestion
         if collections is None or len(collections) == 0:
             collections = ["ipc", "bns", "mapping"]
         
@@ -92,8 +93,34 @@ class RAGService:
         results = {
             "ipc": [],
             "bns": [],
-            "mapping": []
+            "mapping": [],
+            "case_law": [],
+            "quick_mapping": []  # Instant lookup results
         }
+        
+        # =====================================================================
+        # QUICK MAPPING: Check for instant IPC/BNS section lookup
+        # =====================================================================
+        section_info = self.extract_section_info(query_text)
+        if section_info:
+            section_num = section_info["section_base"]
+            context = section_info.get("context", "")
+            
+            # Try quick lookup based on context
+            quick_result = None
+            if context == "ipc" or "ipc" in query_text.lower():
+                quick_result = self.cache.quick_lookup_ipc(section_num)
+            elif context == "bns" or "bns" in query_text.lower():
+                quick_result = self.cache.quick_lookup_bns(section_num)
+            else:
+                # Try both
+                quick_result = self.cache.quick_lookup_ipc(section_num)
+                if not quick_result:
+                    quick_result = self.cache.quick_lookup_bns(section_num)
+            
+            if quick_result:
+                results["quick_mapping"].append(quick_result)
+                print(f"[RAG] QUICK MAPPING: Found instant match for section {section_num}")
         
         # HYBRID SEARCH: Extract section info
         section_info = self.extract_section_info(query_text)
@@ -202,6 +229,33 @@ class RAGService:
             except Exception as e:
                 print(f"[RAG Error] Mapping Query failed: {e}")
 
+        # 4. Search Case Law (if requested)
+        if "case_law" in collections:
+            try:
+                # Build case law filter based on detected sections
+                case_law_filter = None
+                if section_info:
+                    section_base = section_info["section_base"]
+                    # Search for cases that mention this section
+                    # The sections_mentioned field is comma-separated, so we use $contains
+                    case_law_filter = {"sections_mentioned": {"$contains": section_base}}
+                
+                print(f"[RAG] Case Law filter: {case_law_filter}")
+                case_res = self.chroma.query("case_law", query_text, n_results, where=case_law_filter)
+                print(f"[RAG] Case Law raw results: {len(case_res['ids'])} found")
+                
+                if case_res['ids']:
+                    for i, doc_id in enumerate(case_res['ids']):
+                        results["case_law"].append({
+                            "id": doc_id,
+                            "text": case_res['documents'][i],
+                            "metadata": case_res['metadatas'][i],
+                            "score": case_res['distances'][i] if case_res['distances'] else 0
+                        })
+                    print(f"[RAG] Case Law: Found {len(case_res['ids'])} relevant cases")
+            except Exception as e:
+                print(f"[RAG Error] Case Law Query failed: {e}")
+
         # =====================================================================
         # CACHE STORE: Save results for future requests
         # =====================================================================
@@ -212,13 +266,91 @@ class RAGService:
     def detect_language(self, text: str) -> str:
         """
         Detect the language of input text.
-        Returns language code: 'hi' for Hindi, 'en' for English, etc.
+        Returns language code: 'hi' for Hindi, 'en' for English, 'hinglish' for romanized Hindi.
         """
+        # First check for Hinglish (romanized Hindi in English letters)
+        if self.is_hinglish(text):
+            return 'hinglish'
+        
         try:
             lang = detect(text)
             return lang
         except LangDetectException:
             return 'en'  # Default to English if detection fails
+    
+    def is_hinglish(self, text: str) -> bool:
+        """
+        Detect if text is Hinglish (Hindi written in English/Roman letters).
+        Uses common Hindi words that appear in romanized form.
+        """
+        # Common Hindi words in romanized form
+        hinglish_words = [
+            'kya', 'hai', 'hain', 'ka', 'ki', 'ke', 'ko', 'se', 'me', 'mein',
+            'aur', 'ya', 'nahi', 'nahin', 'kaise', 'kab', 'kahan', 'kaun',
+            'saza', 'dhara', 'kanoon', 'kanooni', 'jurm', 'apradh', 'dand',
+            'hatya', 'chori', 'dhoka', 'maar', 'pitai', 'lagao', 'bataiye',
+            'batao', 'samjhao', 'samajh', 'matlab', 'arth', 'paribhasha',
+            'mujhe', 'humein', 'unko', 'usko', 'isko', 'yeh', 'woh', 'wo',
+            'agar', 'toh', 'phir', 'lekin', 'par', 'kyunki', 'isliye'
+        ]
+        
+        text_lower = text.lower()
+        words = re.findall(r'\b[a-zA-Z]+\b', text_lower)
+        
+        if len(words) < 2:
+            return False
+        
+        # Count how many Hinglish words are present
+        hinglish_count = sum(1 for word in words if word in hinglish_words)
+        
+        # If more than 20% of words are Hinglish, classify as Hinglish
+        return hinglish_count >= 2 or (hinglish_count / len(words)) > 0.2
+    
+    def translate_hinglish_to_english(self, text: str) -> str:
+        """
+        Translate Hinglish (romanized Hindi) to English using Ollama.
+        """
+        if not self.llm.enabled:
+            return text  # Return original if LLM not available
+        
+        prompt = f"""Convert this Hinglish (Hindi written in English letters) to proper English.
+Only output the English translation, nothing else.
+
+Hinglish: {text}
+English:"""
+        
+        try:
+            result = self.llm.generate(prompt, temperature=0.1)
+            translated = result.strip()
+            print(f"[RAG] Hinglish translated: '{text}' -> '{translated}'")
+            return translated if translated else text
+        except Exception as e:
+            print(f"[RAG Error] Hinglish translation failed: {e}")
+            return text
+    
+    def translate_to_hinglish(self, text: str) -> str:
+        """
+        Translate English text to Hinglish (romanized Hindi in English letters) using Ollama.
+        Example output: "Murder ki saza maut ya umar kaid hai. IPC Section 302..."
+        """
+        if not self.llm.enabled:
+            return text  # Return original if LLM not available
+        
+        prompt = f"""Convert this English text to Hinglish (Hindi written in English/Roman letters, NOT Devanagari script).
+Use common Hindi words written in English letters. Keep legal terms and section numbers in English.
+Only output the Hinglish translation, nothing else.
+
+English: {text}
+Hinglish:"""
+        
+        try:
+            result = self.llm.generate(prompt, temperature=0.3)
+            translated = result.strip()
+            print(f"[RAG] Translated to Hinglish")
+            return translated if translated else text
+        except Exception as e:
+            print(f"[RAG Error] Hinglish translation failed: {e}")
+            return text
     
     def translate_to_hindi(self, text: str) -> str:
         """
@@ -260,22 +392,35 @@ class RAGService:
         query_lang = self.detect_language(query)
         print(f"[RAG] Detected query language: {query_lang}")
         
+        # Debug: Log what context we received
+        for key, value in context.items():
+            print(f"[RAG] Context '{key}': {len(value)} results")
+        
         # Check if we have any context
         if not any(context.values()):
-            no_result_msg = "I could not find any specific legal sections matching your query in the BNS or IPC databases."
-            if query_lang == 'hi':
+            no_result_msg = "I could not find any matching information in the selected databases (IPC, BNS, Mapping, or Case Law). Try adjusting your filters or rephrasing your query."
+            if query_lang == 'hinglish':
+                return self.translate_to_hinglish(no_result_msg)
+            elif query_lang == 'hi':
                 return self.translate_to_hindi(no_result_msg)
             return no_result_msg
         
         # Try LLM-powered response first
         if self.llm.enabled:
             print("[RAG] Using Ollama LLM for response generation...")
-            answer = self.llm.generate_legal_answer(query, context)
             
-            # Translate to Hindi if needed
-            if query_lang == 'hi':
-                print("[RAG] Translating LLM response to Hindi...")
+            # For Hinglish, tell LLM to output directly in Hinglish (faster - no translation needed)
+            if query_lang == 'hinglish':
+                print("[RAG] Generating response directly in Hinglish...")
+                answer = self.llm.generate_legal_answer(query, context, response_language='hinglish')
+                # No translation needed - LLM outputs Hinglish directly!
+            elif query_lang == 'hi':
+                answer = self.llm.generate_legal_answer(query, context)
+                print("[RAG] Translating response to Hindi (Devanagari)...")
                 answer = self.translate_to_hindi(answer)
+            else:
+                # English - no translation needed
+                answer = self.llm.generate_legal_answer(query, context)
             
             return answer
         
@@ -285,8 +430,16 @@ class RAGService:
         
         response_parts.append(f"### Analysis for: *{query}*\n")
         
+        # Quick Mapping: Show instant IPC ↔ BNS conversion if found
+        if context.get("quick_mapping"):
+            qm = context["quick_mapping"][0]
+            response_parts.append(f"**⚡ Quick Reference:**")
+            if "ipc" in qm and "bns" in qm:
+                response_parts.append(f"- **IPC Section {qm['ipc']}** → **BNS Section {qm['bns']}**")
+                response_parts.append(f"- Category: {qm.get('category', 'Unknown')}\n")
+        
         # Mapping Logic: If mapping found, highlight the transition
-        if context["mapping"]:
+        if context.get("mapping"):
             top_map = context["mapping"][0]
             bns_sec = top_map["metadata"]["bns_section"]
             ipc_sec = top_map["metadata"]["ipc_section"]
@@ -310,11 +463,27 @@ class RAGService:
             response_parts.append(f"**Old Law (IPC):**")
             response_parts.append(f"Section {top_ipc['metadata']['section_number']}: {top_ipc['metadata']['section_title']}")
         
+        # Case Law Logic - Show relevant precedents
+        if context.get("case_law"):
+            response_parts.append(f"\n**Relevant Case Law:**")
+            for i, case in enumerate(context["case_law"][:3]):  # Top 3 cases
+                meta = case["metadata"]
+                case_title = meta.get("case_title", "Unknown Case")
+                case_date = meta.get("case_date", "Unknown Date")
+                year = meta.get("year", "")
+                response_parts.append(f"- **{case_title}** ({case_date})")
+                # Add brief preview of case content
+                preview = case["text"][:150].replace("\n", " ")
+                response_parts.append(f"  > {preview}...")
+        
         answer = "\n".join(response_parts)
         
-        # Translate to Hindi if query was in Hindi
-        if query_lang == 'hi':
-            print("[RAG] Translating response to Hindi...")
+        # Translate response based on query language
+        if query_lang == 'hinglish':
+            print("[RAG] Translating response to Hinglish (romanized Hindi)...")
+            answer = self.translate_to_hinglish(answer)
+        elif query_lang == 'hi':
+            print("[RAG] Translating response to Hindi (Devanagari)...")
             answer = self.translate_to_hindi(answer)
         
         return answer
