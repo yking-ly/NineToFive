@@ -37,9 +37,12 @@ export default function Kira() {
         // Use 'polling' only for maximum stability on Windows/Threading backend
         socketRef.current = io('http://127.0.0.1:5000', {
             transports: ['polling'],
+            upgrade: false, // Prevent upgrade attempts
             reconnection: true,
-            reconnectionAttempts: 5,
-            timeout: 20000
+            reconnectionAttempts: 10,
+            timeout: 60000,
+            pingTimeout: 60000,
+            pingInterval: 25000
         });
         const socket = socketRef.current;
 

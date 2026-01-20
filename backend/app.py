@@ -232,7 +232,7 @@ import retrieval
 
 # Use threading mode to avoid compatibility issues with PyTorch/Gevent
 # Force 'polling' to prevent WebSocket upgrade crashes on Windows/Werkzeug
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading', transports=['polling'])
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading', transports=['polling'], ping_timeout=60, ping_interval=25)
 
 @socketio.on('stop_generation')
 def handle_stop(data=None):
