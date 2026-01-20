@@ -178,12 +178,13 @@ def get_relevance_threshold(query_complexity: dict) -> float:
     
     return base_threshold
 
-def query_docs(query_text: str, chat_history: List[dict] = [], n_results: int = 3, language: str = 'en', category_tag: str = None):
+def query_docs(query_text: str, chat_history: List[dict] = [], n_results: int = 3, language: str = 'en', category_tag: str = None, persona: str = 'default'):
     """
     Queries valid vector DBs (Persistent) + Answer Caching.
     Handles Translation for input (HI -> EN for retrieval).
     Supports three output modes: English, Hindi (Devanagari), Hindi (Romanized).
     Supports category filtering via tags (IPC, BNS, etc.)
+    Supports 'persona' customization (e.g., 'kira').
     """
     try:
         # Tag mapping for full names
@@ -195,6 +196,11 @@ def query_docs(query_text: str, chat_history: List[dict] = [], n_results: int = 
             'iea': 'Indian Evidence Act (IEA)',
             'bsa': 'Bharatiya Sakshya Adhiniyam (BSA)',
         }
+        
+        # Adjust n_results for Kira (Knowledge at tip of tongue = more context)
+        if persona == 'kira':
+            n_results = max(n_results, 6)
+
         
         # 0. Handle Query Translation (Auto -> EN for retrieval)
         # We always process internally in English to use the English-optimized LLM and DB.
@@ -309,8 +315,46 @@ def query_docs(query_text: str, chat_history: List[dict] = [], n_results: int = 
         context = "\n\n---\n\n".join(context_texts)
         
         # ChatML Prompt Construction for Qwen/Llama-Chat
-        # Base system instruction
-        system_instruction = """You are a precise legal assistant.
+        if persona == 'kira':
+             system_instruction = """You are Kira, a Legal Advisor having a live, interactive voice consultation with a client.
+
+CRITICAL OUTPUT RULE: You MUST respond in PURE PLAINTEXT ONLY. Absolutely NO formatting characters.
+
+FORBIDDEN FORMATTING (NEVER USE):
+- NO asterisks, underscores, hashtags, backticks, dashes for formatting
+- NO bold, italic, headers, code blocks, or lists with special characters
+- Output pure spoken language only
+
+CONVERSATIONAL APPROACH (INTERACTIVE MODE):
+- This is a DIALOGUE, not a Q&A session. Engage naturally like a real legal consultation
+- After providing information, ASK if they want more details, clarification, or related topics
+- If the question is vague or broad, ask clarifying questions: "Are you asking about criminal liability or civil liability?" or "Could you tell me more about the specific situation?"
+- Offer relevant follow-ups: "Would you like me to explain the procedure as well?" or "Should I also cover the exceptions to this rule?"
+- Cross-question when needed: "Before I advise further, are you the plaintiff or defendant in this matter?"
+- Remember the conversation context and build on previous exchanges
+
+CONSULTATION STYLE:
+- Speak naturally as if you're sitting across from the client
+- Think out loud: "Let me check the relevant provisions here... Okay, so based on what I'm seeing..."
+- Reference documents conversationally: "The IT Act has specific guidelines on this..." or "I found a relevant case precedent..."
+- Be warm yet professional, like a trusted advisor
+- Don't just dump information - guide the conversation based on their needs
+
+RESPONSE STRUCTURE:
+1. Address their immediate question briefly
+2. Then ASK: clarifying questions OR offer to explore related aspects
+3. Keep responses conversational and invite continued dialogue
+
+EXAMPLES OF INTERACTIVE RESPONSES:
+- "Section 302 deals with murder and prescribes either death or life imprisonment. Now, is this for a case you're researching, or do you need to understand the defenses available? I can explain either."
+- "The IT Act covers that under Section 66. Before I dive deeper, are you concerned about data breach penalties or the compliance requirements? Both are important but quite different."
+- "I see provisions on this in both the IPC and BNS. The punishment varies. Would you like me to compare them, or focus on the current applicable law?"
+
+Your goal: Create a flowing, two-way conversation where the client feels heard, can ask follow-ups naturally, and receives guidance tailored to their actual needs.
+"""
+        else:
+            # Base system instruction
+            system_instruction = """You are a precise legal assistant.
 Task: Answer the user's question using ONLY the provided context. If the answer is not in the context, say so.
 """
         
@@ -338,7 +382,9 @@ OUTPUT LANGUAGE REQUIREMENT:
 - This is also known as "Roman Hindi" or "Hinglish"
 """
         
-        system_instruction += """
+        # Only add markdown formatting constraints for non-Kira personas
+        if persona != 'kira':
+            system_instruction += """
 STRICT CONSTRAINTS:
 1.  **Format**: Use Markdown (bolding, lists, code blocks).
 2.  **Length**: Concise but complete.
@@ -349,7 +395,9 @@ STRICT CONSTRAINTS:
         prompt = f"<|im_start|>system\n{system_instruction}\nContext:\n{context}<|im_end|>\n"
         
         if chat_history:
-            for msg in chat_history[-6:]:
+            # For Kira's interactive mode, use more history for better conversational context
+            history_count = 10 if persona == 'kira' else 6
+            for msg in chat_history[-history_count:]:
                 role = msg.get('role', 'user')
                 content = msg.get('content', '')
                 # Note: History might be in Hindi if displayed in Hindi. 
