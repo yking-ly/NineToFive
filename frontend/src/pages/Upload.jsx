@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { FaCloudUploadAlt, FaFileAlt, FaArrowLeft, FaCheckCircle, FaExclamationCircle, FaSpinner, FaEye, FaAlignLeft } from 'react-icons/fa';
+import { FaCloudUploadAlt, FaFileAlt, FaArrowLeft, FaCheckCircle, FaExclamationCircle, FaSpinner, FaEye, FaAlignLeft, FaShieldAlt } from 'react-icons/fa';
 import { getApiUrl } from '../utils/apiConfig';
 import { useLanguage } from '../context/LanguageContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Upload() {
     const [uploading, setUploading] = useState(false);
@@ -13,7 +14,7 @@ export default function Upload() {
     const fileInputRef = useRef(null);
 
     // Global Language Context
-    const { t, language, toggleLanguage } = useLanguage();
+    const { t, language, changeLanguage } = useLanguage();
 
     const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB
 
@@ -43,7 +44,7 @@ export default function Upload() {
 
         setUploading(true);
         setStatus(null);
-        setMessage(t.processing); // Use translation
+        setMessage(t.processing);
 
         const formData = new FormData();
         formData.append('file', file);
@@ -61,7 +62,11 @@ export default function Upload() {
                 setStatus('success');
                 setMessage('File uploaded successfully!');
                 setUploadedData(data.data);
-                setViewMode(true); // Automatically switch to view mode on success
+
+                // Delay switching to view mode slightly for effect
+                setTimeout(() => {
+                    setViewMode(true);
+                }, 1000);
             } else {
                 throw new Error(data.error || 'Upload failed');
             }
@@ -81,166 +86,233 @@ export default function Upload() {
     };
 
     return (
-        <div className="h-screen bg-neutral-950 text-white font-sans selection:bg-white selection:text-black overflow-hidden relative flex flex-col">
+        <div className="h-screen bg-[#030303] text-white font-sans overflow-hidden relative flex flex-col">
 
-            {/* Background elements */}
-            <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-                <div className="absolute top-[-20%] right-[-10%] w-[800px] h-[800px] bg-white/5 rounded-full blur-[180px]"></div>
-                <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-white/5 rounded-full blur-[150px]"></div>
+            {/* Dynamic Background */}
+            <div className="fixed inset-0 pointer-events-none z-0">
+                <div className="absolute top-[-20%] right-[-10%] w-[800px] h-[800px] bg-indigo-600/10 rounded-full blur-[150px] animate-pulse"></div>
+                <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }}></div>
             </div>
 
-            {/* Navbar / Header for non-view mode or just consistent header */}
-            <nav className="relative z-20 p-6 flex justify-between items-center container mx-auto flex-shrink-0">
-                <Link to="/" className="text-neutral-500 hover:text-white transition-colors flex items-center gap-2 group text-sm font-medium tracking-wide uppercase">
-                    <FaArrowLeft className="group-hover:-translate-x-1 transition-transform" />
-                    {t.backDashboard}
+            {/* Navbar */}
+            <nav className="relative z-20 px-8 py-6 flex justify-between items-center bg-transparent">
+                <Link to="/" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors border border-white/5 hover:border-white/20 group">
+                    <FaArrowLeft className="text-neutral-400 group-hover:text-white transition-colors" />
                 </Link>
 
                 <div className="flex items-center gap-4">
-                    <button
-                        onClick={toggleLanguage}
-                        className="px-3 py-2 rounded-lg bg-neutral-900 border border-white/10 text-xs font-semibold tracking-wide text-neutral-300 hover:text-white hover:bg-neutral-800 transition-all flex items-center gap-2 shadow-sm"
-                    >
-                        <span>{language === 'en' ? "🇮🇳 Hindi" : "🇬🇧 English"}</span>
-                    </button>
+                    <div className="bg-neutral-900/50 p-1 rounded-xl border border-white/5 flex gap-1 backdrop-blur-md">
+                        {['en', 'hi'].map((langKey) => (
+                            <button
+                                key={langKey}
+                                onClick={() => changeLanguage(langKey)}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${language === langKey
+                                    ? 'bg-white text-black shadow-sm'
+                                    : 'text-neutral-500 hover:text-white hover:bg-white/5'
+                                    }`}
+                            >
+                                {langKey === 'en' ? 'EN' : 'हिंदी'}
+                            </button>
+                        ))}
+                    </div>
 
                     {viewMode && (
-                        <button
+                        <motion.button
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
                             onClick={() => { setViewMode(false); setStatus(null); setUploadedData(null); }}
-                            className="text-xs font-bold bg-neutral-800 hover:bg-neutral-700 px-4 py-2 rounded-lg transition-colors border border-white/10 uppercase tracking-widest shadow-lg hover:shadow-white/5"
+                            className="bg-white text-black px-5 py-2 rounded-xl text-sm font-bold shadow-lg hover:bg-neutral-200 transition-colors"
                         >
                             {t.uploadNew}
-                        </button>
+                        </motion.button>
                     )}
                 </div>
             </nav>
 
-            <div className={`relative z-10 container mx-auto px-6 flex flex-col ${viewMode ? 'h-[calc(100vh-100px)] pb-6' : 'h-screen items-center justify-center'}`}>
+            <div className={`relative z-10 container mx-auto px-6 lg:px-12 flex flex-col ${viewMode ? 'h-[calc(100vh-100px)] pb-6' : 'h-full justify-center items-center'}`}>
 
-                {!viewMode ? (
-                    /* UPLOAD SECTION */
-                    <>
-                        <h1 className="text-4xl md:text-5xl font-black mb-6 text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 tracking-tight text-center">
-                            {t.docAnalysis}
-                        </h1>
-
-                        <p className="text-neutral-400 mb-12 max-w-md text-center text-lg font-light leading-relaxed">
-                            {t.uploadDescription}
-                        </p>
-
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleFileSelect}
-                            className="hidden"
-                            accept=".pdf,.docx,.txt"
-                        />
-
-                        <div
-                            onDragOver={handleDragOver}
-                            onDrop={handleDrop}
-                            onClick={() => !uploading && fileInputRef.current.click()}
-                            className={`glass-card w-full max-w-2xl rounded-3xl p-12 text-center transition-all duration-300 hover:border-white/20 group cursor-pointer border-dashed border-2 ${uploading ? 'border-blue-500/50 cursor-wait' : 'border-white/10'} bg-neutral-900/40 relative overflow-hidden`}
+                <AnimatePresence mode="wait">
+                    {!viewMode ? (
+                        /* UPLOAD SECTION */
+                        <motion.div
+                            key="upload-section"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="w-full max-w-2xl text-center"
                         >
-                            {uploading && (
-                                <div className="absolute inset-0 bg-neutral-950/80 z-20 flex flex-col items-center justify-center backdrop-blur-sm">
-                                    <FaSpinner className="animate-spin h-10 w-10 text-white mb-4" />
-                                    <p className="text-white font-medium tracking-wide animate-pulse">{t.processing}</p>
-                                </div>
-                            )}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.1 }}
+                            >
+                                <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tighter">
+                                    <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40">{t.analyzeTitle1}</span> {t.analyzeTitle2}
+                                </h1>
+                                <p className="text-xl text-neutral-400 mb-12 font-light leading-relaxed max-w-lg mx-auto">
+                                    {t.uploadDescription}
+                                </p>
+                            </motion.div>
 
-                            {!uploading && status === 'error' ? (
-                                <div className="animate-fade-in-up">
-                                    <div className="w-20 h-20 mx-auto bg-red-500/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(239,68,68,0.3)]">
-                                        <FaExclamationCircle className="h-10 w-10 text-red-500" />
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleFileSelect}
+                                className="hidden"
+                                accept=".pdf,.docx,.txt"
+                            />
+
+                            <motion.div
+                                onDragOver={handleDragOver}
+                                onDrop={handleDrop}
+                                onClick={() => !uploading && fileInputRef.current.click()}
+                                className={`relative group cursor-pointer backdrop-blur-xl rounded-[2.5rem] p-12 md:p-16 border-2 border-dashed transition-all duration-500 overflow-hidden ${uploading ? 'border-indigo-500/50 bg-indigo-500/5' : 'border-white/10 bg-neutral-900/40 hover:border-white/30 hover:bg-neutral-900/60'
+                                    }`}
+                                whileHover={!uploading ? { scale: 1.02, y: -5 } : {}}
+                                whileTap={!uploading ? { scale: 0.98 } : {}}
+                            >
+                                {/* Glow Effect on Hover */}
+                                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+
+                                {uploading ? (
+                                    <div className="flex flex-col items-center justify-center relative z-20">
+                                        <div className="relative w-24 h-24 mb-8">
+                                            <div className="absolute inset-0 rounded-full border-4 border-white/10"></div>
+                                            <div className="absolute inset-0 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin"></div>
+                                            <FaShieldAlt className="absolute inset-0 m-auto text-indigo-400 w-8 h-8 animate-pulse" />
+                                        </div>
+                                        <h3 className="text-2xl font-bold text-white mb-2">{t.processing}</h3>
+                                        <p className="text-neutral-400 text-sm tracking-widest uppercase">{t.analyzing}</p>
                                     </div>
-                                    <h3 className="text-xl font-bold text-white mb-2">{t.uploadFailed}</h3>
-                                    <p className="text-red-400 mb-6">{message}</p>
-                                    <p className="text-xs text-neutral-600 mt-6 uppercase tracking-widest click-to-upload">{t.clickRetry}</p>
-                                </div>
-                            ) : (
-                                // Default Status
-                                <>
-                                    <div className="w-20 h-20 mx-auto bg-neutral-800 rounded-full flex items-center justify-center mb-6 shadow-inner group-hover:scale-110 transition-transform duration-300">
-                                        <FaCloudUploadAlt className="h-10 w-10 text-white/80 group-hover:text-white transition-colors" />
-                                    </div>
-
-                                    <h3 className="text-xl font-bold text-white mb-2">{t.dropFiles}</h3>
-                                    <p className="text-neutral-500 mb-8 font-medium">{t.or} <span className="text-white underline underline-offset-4 decoration-white/30 hover:decoration-white transition-all">{t.browseFiles}</span> {t.fromDevice}</p>
-
-                                    <div className="flex justify-center gap-4 text-xs font-semibold tracking-widest text-neutral-600 uppercase">
-                                        <span className="bg-neutral-900/80 px-3 py-1.5 rounded-md border border-white/5 flex items-center gap-2">
-                                            <FaFileAlt /> PDF
-                                        </span>
-                                        <span className="bg-neutral-900/80 px-3 py-1.5 rounded-md border border-white/5 flex items-center gap-2">
-                                            <FaFileAlt /> DOCX
-                                        </span>
-                                        <span className="bg-neutral-900/80 px-3 py-1.5 rounded-md border border-white/5 flex items-center gap-2">
-                                            <FaFileAlt /> TXT
+                                ) : status === 'error' ? (
+                                    <div className="flex flex-col items-center justify-center relative z-20">
+                                        <div className="w-24 h-24 rounded-full bg-red-500/10 flex items-center justify-center mb-6 border border-red-500/20 shadow-[0_0_30px_rgba(239,68,68,0.15)]">
+                                            <FaExclamationCircle className="h-10 w-10 text-red-500" />
+                                        </div>
+                                        <h3 className="text-xl font-bold text-white mb-2">{t.uploadFailed}</h3>
+                                        <p className="text-red-400 mb-8">{message}</p>
+                                        <span className="text-xs text-neutral-500 uppercase tracking-widest border-b border-neutral-700 pb-1 group-hover:text-white group-hover:border-white transition-all">
+                                            {t.clickRetry}
                                         </span>
                                     </div>
-                                    <p className="text-[10px] text-neutral-700 mt-6">Max File Size: 15MB</p>
-                                </>
-                            )}
-                        </div>
-                    </>
-                ) : (
-                    /* SPLIT VIEW SECTION */
-                    <div className="w-full h-full min-h-0 flex flex-col md:flex-row gap-6 animate-fade-in-up max-w-[1800px] mx-auto">
-
-                        {/* LEFT: Document Preview */}
-                        <div className="flex-1 glass-card rounded-3xl overflow-hidden flex flex-col border border-white/10 bg-neutral-900/50 h-full">
-                            <div className="p-4 border-b border-white/5 flex items-center gap-3 bg-white/5 flex-shrink-0">
-                                <FaEye className="text-neutral-400" />
-                                <h3 className="text-sm font-bold tracking-wider uppercase text-neutral-300">{t.docPreview}</h3>
-                            </div>
-                            <div className="flex-1 bg-neutral-900 relative">
-                                {uploadedData?.driveUrl ? (
-                                    <iframe
-                                        src={getPreviewUrl(uploadedData.driveUrl)}
-                                        className="w-full h-full absolute inset-0 border-none"
-                                        title="Document Preview"
-                                        allow="autoplay"
-                                    ></iframe>
                                 ) : (
-                                    <div className="flex items-center justify-center h-full text-neutral-500">
-                                        No preview available
+                                    <div className="flex flex-col items-center justify-center relative z-20">
+                                        <motion.div
+                                            className="w-24 h-24 rounded-[2rem] bg-gradient-to-br from-neutral-800 to-neutral-900 border border-white/5 flex items-center justify-center mb-8 shadow-2xl group-hover:shadow-[0_0_30px_rgba(255,255,255,0.1)] transition-all duration-500"
+                                            whileHover={{ rotate: 10, scale: 1.1 }}
+                                        >
+                                            <FaCloudUploadAlt className="h-10 w-10 text-neutral-400 group-hover:text-white transition-colors duration-300" />
+                                        </motion.div>
+
+                                        <h3 className="text-3xl font-bold text-white mb-3 tracking-tight">{t.dropFiles}</h3>
+                                        <p className="text-neutral-400 mb-10 text-lg">
+                                            {t.or} <span className="text-white font-semibold border-b border-white/50 hover:border-white transition-colors">{t.browseFiles}</span> {t.fromDevice}
+                                        </p>
+
+                                        <div className="flex gap-3">
+                                            {['PDF', 'DOCX', 'TXT'].map((ext) => (
+                                                <span key={ext} className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/5 text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
+                                                    {ext}
+                                                </span>
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
-                            </div>
-                        </div>
+                            </motion.div>
 
-                        {/* RIGHT: Summary */}
-                        <div className="w-full md:w-[600px] glass-card rounded-3xl p-8 flex flex-col border border-white/10 bg-neutral-900/50 h-full flex-shrink-0">
-                            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10 flex-shrink-0">
-                                <div className="w-10 h-10 rounded-lg bg-indigo-500/20 flex items-center justify-center">
-                                    <FaAlignLeft className="text-indigo-400" />
-                                </div>
-                                <div>
-                                    <h2 className="text-xl font-bold text-white">{t.aiSummary}</h2>
-                                    <p className="text-xs text-neutral-500 uppercase tracking-wider">{t.generatedBy}</p>
-                                </div>
-                            </div>
+                            {status === 'success' && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="mt-6 p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 font-medium flex items-center justify-center gap-2"
+                                >
+                                    <FaCheckCircle /> {message}
+                                </motion.div>
+                            )}
+                        </motion.div>
+                    ) : (
+                        /* SPLIT VIEW SECTION */
+                        <motion.div
+                            key="split-view"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.6 }}
+                            className="w-full h-full flex flex-col md:flex-row gap-8 max-w-[1800px] mx-auto"
+                        >
+                            {/* LEFT: Document Preview */}
+                            <motion.div
+                                initial={{ x: -100, opacity: 0 }}
+                                animate={{ x: 0, opacity: 1 }}
+                                transition={{ duration: 0.6, delay: 0.2 }}
+                                className="flex-1 bg-neutral-900/50 backdrop-blur-2xl rounded-[2.5rem] border border-white/10 overflow-hidden flex flex-col relative group"
+                            >
+                                <div className="absolute inset-0 border border-white/5 rounded-[2.5rem] pointer-events-none z-20"></div>
 
-                            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                                <div className="prose prose-invert prose-sm max-w-none">
-                                    <p className="text-neutral-300 leading-relaxed text-base">
-                                        {uploadedData?.summary || "No summary available for this document."}
-                                    </p>
+                                <div className="p-6 border-b border-white/5 flex items-center gap-4 bg-white/[0.02]">
+                                    <div className="w-10 h-10 rounded-xl bg-neutral-800 flex items-center justify-center">
+                                        <FaEye className="text-neutral-400" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-sm font-bold text-white tracking-wide uppercase">{t.docPreview}</h3>
+                                        <p className="text-xs text-neutral-500">{t.readOnlyMode}</p>
+                                    </div>
                                 </div>
-                            </div>
+                                <div className="flex-1 relative bg-[#1a1a1a]">
+                                    {uploadedData?.driveUrl ? (
+                                        <iframe
+                                            src={getPreviewUrl(uploadedData.driveUrl)}
+                                            className="w-full h-full absolute inset-0 border-none opacity-90 hover:opacity-100 transition-opacity"
+                                            title="Document Preview"
+                                            allow="autoplay"
+                                        ></iframe>
+                                    ) : (
+                                        <div className="flex items-center justify-center h-full text-neutral-500">
+                                            No preview available
+                                        </div>
+                                    )}
+                                </div>
+                            </motion.div>
 
-                            <div className="mt-6 pt-6 border-t border-white/10 flex-shrink-0">
-                                <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
-                                    <h4 className="text-yellow-500 text-xs font-bold uppercase tracking-wide mb-2">{t.disclaimer}</h4>
-                                    <p className="text-neutral-400 text-xs leading-relaxed">
-                                        {t.disclaimerText}
-                                    </p>
+                            {/* RIGHT: Summary */}
+                            <motion.div
+                                initial={{ x: 100, opacity: 0 }}
+                                animate={{ x: 0, opacity: 1 }}
+                                transition={{ duration: 0.6, delay: 0.4 }}
+                                className="w-full md:w-[600px] bg-neutral-900/50 backdrop-blur-2xl rounded-[2.5rem] border border-white/10 flex flex-col relative"
+                            >
+                                <div className="p-8 border-b border-white/5 flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                                        <FaAlignLeft className="text-indigo-400 w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-black text-white">{t.aiSummary}</h2>
+                                        <p className="text-xs text-neutral-500 uppercase tracking-widest font-bold">{t.generatedBy}</p>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
+
+                                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                                    <div className="prose prose-invert prose-lg max-w-none">
+                                        <p className="text-neutral-300 leading-8 text-lg font-light">
+                                            {uploadedData?.summary || "No summary available for this document."}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="p-8 mt-auto border-t border-white/5 bg-white/[0.02]">
+                                    <div className="bg-yellow-500/5 border border-yellow-500/10 rounded-2xl p-5 flex gap-4 items-start">
+                                        <FaExclamationCircle className="text-yellow-500/80 mt-1 flex-shrink-0" />
+                                        <div>
+                                            <h4 className="text-yellow-500 text-xs font-bold uppercase tracking-wide mb-1">{t.disclaimer}</h4>
+                                            <p className="text-neutral-500 text-xs leading-relaxed font-medium">
+                                                {t.disclaimerText}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
         </div>
     )

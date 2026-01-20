@@ -22,6 +22,9 @@ CORS(app, resources={r"/*": {"origins": "*", "expose_headers": ["X-Sources"]}})
 DB_FILE = 'uploads_db.json'
 UPLOAD_URL = "https://script.google.com/macros/s/AKfycbyV_2016LPBRF4jBzxVLi0LLCYAW6Hh1ET37KeEeF-JtyDe0oh9p0JOO26-g4TlpiSCzQ/exec"
 
+# Track active generation requests for interruption
+active_requests = {}
+
 @app.route('/')
 def hello_world():
     return jsonify({"message": "Hello from Flask Backend!"})
@@ -65,6 +68,36 @@ def get_guide():
         guide_content = f"Error processing guide: {str(e)}"
     
     return jsonify({"content": guide_content})
+
+@app.route('/api/translations/<lang>')
+def get_translations(lang):
+    try:
+        # Load the translations file
+        data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'translations.json')
+        # Check if file exists
+        if not os.path.exists(data_path):
+             return jsonify({"error": "Translations file not found"}), 404
+
+        with open(data_path, 'r', encoding='utf-8') as f:
+            translations = json.load(f)
+        
+        target_lang = lang
+        # Map romanized to English UI strings for now, or handle specifically if added
+        if lang == 'hi-romanized':
+             target_lang = 'en' 
+        
+        # Return the specific language dictionary, default to English if not found
+        result = translations.get(target_lang, translations.get('en'))
+        
+        # Add artificial delay to show off skeleton loading if requested? 
+        # User asked for "skeleton type loading style", implying it should be visible.
+        # I'll add a tiny delay (e.g. 500ms) to ensure the visual effect is perceptible.
+        time.sleep(0.5)
+        
+        return jsonify(result)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
@@ -200,6 +233,15 @@ import retrieval
 # Use threading mode to avoid compatibility issues with PyTorch/Gevent
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
+@socketio.on('stop_generation')
+def handle_stop(data):
+    """
+    Stops the current generation for the requesting user.
+    """
+    if request.sid in active_requests:
+        active_requests[request.sid] = False
+        print(f"🛑 Generation stopped for session {request.sid}")
+
 @socketio.on('send_message')
 def handle_message(data):
     """
@@ -208,7 +250,11 @@ def handle_message(data):
     query = data.get('message')
     history = data.get('history', [])
     language = data.get('language', 'en')
-    tag = data.get('tag', None)  # Get the selected category tag
+    tag = data.get('tag', None)
+    persona = data.get('persona', 'default') # Support for Kira
+    
+    # Mark this session as active
+    active_requests[request.sid] = True
     
     if not query:
         emit('error', {'error': 'No query provided'})
@@ -220,7 +266,8 @@ def handle_message(data):
             query, 
             chat_history=history, 
             language=language,
-            category_tag=tag  # Pass the tag to retrieval
+            category_tag=tag,
+            persona=persona
         )
         
         # Map filenames to details from DB
@@ -249,9 +296,45 @@ def handle_message(data):
         # Emit sources first
         emit('sources', sources)
         
+        # Helper function to strip markdown (for Kira plaintext responses)
+        def strip_markdown(text):
+            """Aggressively remove ALL markdown syntax for pure plaintext TTS output"""
+            import re
+            # Remove code blocks
+            text = re.sub(r'```.*?```', '', text, flags=re.DOTALL)
+            # Remove bold (multiple passes for nested)
+            for _ in range(3):
+                text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
+                text = re.sub(r'__(.+?)__', r'\1', text)
+            # Remove italic
+            for _ in range(3):
+                text = re.sub(r'\*(.+?)\*', r'\1', text)
+                text = re.sub(r'_(.+?)_', r'\1', text)
+            # Remove headers
+            text = re.sub(r'^#{1,6}\s+', '', text, flags=re.MULTILINE)
+            # Remove inline code
+            text = re.sub(r'`(.+?)`', r'\1', text)
+            # Remove list markers
+            text = re.sub(r'^\s*[-*+]\s+', '', text, flags=re.MULTILINE)
+            text = re.sub(r'^\s*\d+\.\s+', '', text, flags=re.MULTILINE)
+            # Remove links [text](url)
+            text = re.sub(r'\[([^]]+)\]\([^)]+\)', r'\1', text)
+            # Clean up spaces
+            text = re.sub(r'\s+', ' ', text)
+            return text.strip()
+        
         # Stream the answer chunks
         full_response = ""
         for chunk in answer_stream:
+            # Check for interruption signal
+            if not active_requests.get(request.sid, True):
+                print(f"⚠️ Generation interrupted by user {request.sid}")
+                break
+            
+            # Strip markdown for Kira persona to ensure clean TTS
+            if persona == 'kira':
+                chunk = strip_markdown(chunk)
+                
             full_response += chunk
             emit('response_chunk', chunk)
             

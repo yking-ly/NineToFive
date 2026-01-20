@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaSave, FaServer, FaCheckCircle } from 'react-icons/fa';
 import { getApiUrl, setApiUrl, DEFAULT_API_URL } from '../utils/apiConfig';
 import { useLanguage } from '../context/LanguageContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Settings() {
     const navigate = useNavigate();
@@ -10,7 +11,7 @@ export default function Settings() {
     const [saved, setSaved] = useState(false);
 
     // Global Language Context
-    const { t, language, toggleLanguage } = useLanguage();
+    const { t, language, changeLanguage } = useLanguage();
 
     useEffect(() => {
         setUrl(getApiUrl());
@@ -44,7 +45,7 @@ export default function Settings() {
     };
 
     return (
-        <div className="min-h-screen bg-neutral-950 text-white font-sans selection:bg-white selection:text-black overflow-hidden relative flex flex-col items-center justify-center p-6">
+        <div className="min-h-screen bg-[#030303] text-white font-sans selection:bg-white selection:text-black overflow-hidden relative flex flex-col items-center justify-center p-6">
 
             {/* Background Elements */}
             <div className="absolute top-[-20%] left-[-20%] w-[800px] h-[800px] bg-white/5 rounded-full blur-[150px] pointer-events-none"></div>
@@ -60,19 +61,44 @@ export default function Settings() {
             </button>
 
             {/* Language Toggle */}
-            <button
-                onClick={toggleLanguage}
-                className="absolute top-8 right-8 z-50 px-3 py-2 rounded-lg bg-neutral-900 border border-white/10 text-xs font-semibold tracking-wide text-neutral-300 hover:text-white hover:bg-neutral-800 transition-all flex items-center gap-2 shadow-sm"
-            >
-                <span>{language === 'en' ? "🇮🇳 Hindi" : "🇬🇧 English"}</span>
-            </button>
+            <div className="absolute top-8 right-8 z-50 flex gap-2 bg-neutral-900 border border-white/10 rounded-lg p-1">
+                {['en', 'hi'].map((langKey) => (
+                    <button
+                        key={langKey}
+                        onClick={() => changeLanguage(langKey)}
+                        className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${language === langKey
+                                ? 'bg-white text-black shadow-sm'
+                                : 'text-neutral-400 hover:text-white'
+                            }`}
+                    >
+                        {langKey === 'en' ? 'EN' : 'HI'}
+                    </button>
+                ))}
+            </div>
 
-            <div className="relative z-10 w-full max-w-lg">
+            <motion.div
+                className="relative z-10 w-full max-w-lg"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4 }}
+            >
                 <div className="text-center mb-10">
-                    <h1 className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 mb-2">
+                    <motion.h1
+                        className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 mb-2"
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2, duration: 0.5 }}
+                    >
                         {t.settingsTitle}
-                    </h1>
-                    <p className="text-neutral-400">{t.configDesc}</p>
+                    </motion.h1>
+                    <motion.p
+                        className="text-neutral-400"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.3, duration: 0.5 }}
+                    >
+                        {t.configDesc}
+                    </motion.p>
                 </div>
 
                 <div className="glass-card p-8 rounded-3xl border border-white/10 bg-neutral-900/50 shadow-2xl">
@@ -99,31 +125,44 @@ export default function Settings() {
                         </div>
 
                         <div className="pt-4 flex items-center gap-3">
-                            <button
+                            <motion.button
                                 type="submit"
                                 className="flex-1 bg-white text-black font-bold py-3 px-6 rounded-xl hover:bg-neutral-200 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-white/5"
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
                             >
                                 <FaSave /> {t.saveChanges}
-                            </button>
+                            </motion.button>
 
-                            <button
+                            <motion.button
                                 type="button"
                                 onClick={handleReset}
                                 className="px-4 py-3 rounded-xl border border-white/10 text-neutral-400 hover:text-white hover:bg-white/5 transition-colors text-sm font-semibold"
                                 title={t.resetTooltip}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
                             >
                                 {t.reset}
-                            </button>
+                            </motion.button>
                         </div>
                     </form>
 
                     {/* Success Notification */}
-                    <div className={`mt-6 p-3 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center gap-3 text-green-400 text-sm font-medium transition-all duration-300 ${saved ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'}`}>
-                        <FaCheckCircle />
-                        {t.savedSuccess}
-                    </div>
+                    <AnimatePresence>
+                        {saved && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0, y: 10 }}
+                                animate={{ opacity: 1, height: 'auto', y: 0 }}
+                                exit={{ opacity: 0, height: 0, y: -10 }}
+                                className="mt-6 p-3 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center gap-3 text-green-400 text-sm font-medium"
+                            >
+                                <FaCheckCircle />
+                                {t.savedSuccess}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 }
