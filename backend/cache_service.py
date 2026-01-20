@@ -173,3 +173,184 @@ class CacheService:
             }
         except Exception:
             return {"enabled": False}
+    
+    # =========================================================================
+    # CHAT HISTORY: Multiple conversations with memory
+    # =========================================================================
+    
+    def create_chat(self, chat_id: str, name: str = "New Chat") -> dict:
+        """Create a new chat session."""
+        if not self.enabled:
+            return None
+        try:
+            import time
+            chat_data = {
+                "id": chat_id,
+                "name": name,
+                "created_at": time.time(),
+                "updated_at": time.time(),
+                "messages": []
+            }
+            self.client.set(f"chat:{chat_id}", json.dumps(chat_data))
+            # Add to chat index
+            self.client.sadd("chat:index", chat_id)
+            return chat_data
+        except Exception as e:
+            print(f"[Cache Error] Failed to create chat: {e}")
+            return None
+    
+    def get_chat(self, chat_id: str) -> Optional[dict]:
+        """Get a chat by ID."""
+        if not self.enabled:
+            return None
+        try:
+            data = self.client.get(f"chat:{chat_id}")
+            return json.loads(data) if data else None
+        except Exception:
+            return None
+    
+    def list_chats(self) -> list:
+        """List all chats, sorted by last updated."""
+        if not self.enabled:
+            return []
+        try:
+            chat_ids = self.client.smembers("chat:index")
+            chats = []
+            for chat_id in chat_ids:
+                chat = self.get_chat(chat_id)
+                if chat:
+                    chats.append({
+                        "id": chat["id"],
+                        "name": chat["name"],
+                        "created_at": chat["created_at"],
+                        "updated_at": chat["updated_at"],
+                        "message_count": len(chat.get("messages", []))
+                    })
+            # Sort by updated_at (newest first)
+            chats.sort(key=lambda x: x["updated_at"], reverse=True)
+            return chats
+        except Exception as e:
+            print(f"[Cache Error] Failed to list chats: {e}")
+            return []
+    
+    def add_message(self, chat_id: str, role: str, content: str) -> bool:
+        """Add a message to a chat."""
+        if not self.enabled:
+            return False
+        try:
+            import time
+            chat = self.get_chat(chat_id)
+            if not chat:
+                return False
+            chat["messages"].append({
+                "role": role,
+                "content": content,
+                "timestamp": time.time()
+            })
+            chat["updated_at"] = time.time()
+            self.client.set(f"chat:{chat_id}", json.dumps(chat))
+            return True
+        except Exception as e:
+            print(f"[Cache Error] Failed to add message: {e}")
+            return False
+    
+    def rename_chat(self, chat_id: str, new_name: str) -> bool:
+        """Rename a chat."""
+        if not self.enabled:
+            return False
+        try:
+            chat = self.get_chat(chat_id)
+            if not chat:
+                return False
+            chat["name"] = new_name
+            self.client.set(f"chat:{chat_id}", json.dumps(chat))
+            return True
+        except Exception as e:
+            print(f"[Cache Error] Failed to rename chat: {e}")
+            return False
+    
+    def delete_chat(self, chat_id: str) -> bool:
+        """Delete a chat."""
+        if not self.enabled:
+            return False
+        try:
+            self.client.delete(f"chat:{chat_id}")
+            self.client.srem("chat:index", chat_id)
+            return True
+        except Exception as e:
+            print(f"[Cache Error] Failed to delete chat: {e}")
+            return False
+    
+    def get_chat_messages(self, chat_id: str, limit: int = 10) -> list:
+        """Get recent messages from a chat for context."""
+        chat = self.get_chat(chat_id)
+        if not chat:
+            return []
+        messages = chat.get("messages", [])
+        # Return last N messages
+        return messages[-limit:] if limit else messages
+    
+    # =========================================================================
+    # QUICK MAPPING: Instant IPC ↔ BNS lookups
+    # =========================================================================
+    
+    def quick_lookup_ipc(self, ipc_section: str) -> Optional[dict]:
+        """
+        Instant IPC → BNS lookup from pre-loaded mapping.
+        Returns: {"ipc": "302", "bns": "103(1)", "category": "Grave Offences..."}
+        """
+        if not self.enabled:
+            return None
+        try:
+            # Normalize: remove spaces, parentheses, lowercase
+            key = ipc_section.lower().replace(" ", "").replace("(", "").replace(")", "")
+            data = self.client.get(f"quick:ipc:{key}")
+            if data:
+                print(f"[Cache] QUICK HIT: IPC {ipc_section}")
+                return json.loads(data)
+            return None
+        except Exception:
+            return None
+    
+    def quick_lookup_bns(self, bns_section: str) -> Optional[dict]:
+        """
+        Instant BNS → IPC lookup from pre-loaded mapping.
+        Returns: {"bns": "103(1)", "ipc": "302", "category": "Grave Offences..."}
+        """
+        if not self.enabled:
+            return None
+        try:
+            key = bns_section.lower().replace(" ", "").replace("(", "").replace(")", "")
+            data = self.client.get(f"quick:bns:{key}")
+            if data:
+                print(f"[Cache] QUICK HIT: BNS {bns_section}")
+                return json.loads(data)
+            return None
+        except Exception:
+            return None
+    
+    def quick_lookup_category(self, category: str) -> Optional[list]:
+        """
+        Get all sections in a crime category.
+        Returns: [{"ipc": "379", "bns": "303(2)"}, ...]
+        """
+        if not self.enabled:
+            return None
+        try:
+            # Try exact match first
+            key = category.lower().replace(" ", "_")
+            data = self.client.get(f"quick:category:{key}")
+            if data:
+                return json.loads(data)
+            
+            # Try partial match
+            all_keys = self.client.keys("quick:category:*")
+            for cat_key in all_keys:
+                if category.lower() in cat_key.lower():
+                    data = self.client.get(cat_key)
+                    if data:
+                        return json.loads(data)
+            return None
+        except Exception:
+            return None
+
