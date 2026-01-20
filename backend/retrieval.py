@@ -8,6 +8,46 @@ import re
 # SMART RETRIEVAL HELPER FUNCTIONS
 # ============================================================================
 
+def extract_conversation_topics(chat_history: List[dict]) -> List[str]:
+    """
+    Extracts key topics from conversation history for chained context retrieval.
+    Returns a list of relevant search queries based on previous exchanges.
+    """
+    if not chat_history or len(chat_history) < 2:
+        return []
+    
+    topics = []
+    
+    # Extract from last 4-6 messages
+    recent_messages = chat_history[-6:]
+    
+    for msg in recent_messages:
+        if msg.get('role') == 'user':
+            content = msg.get('content', '')
+            # Extract legal terms, section numbers, acts
+            # Section numbers (e.g., "Section 302", "Article 21")
+            sections = re.findall(r'(?:section|article|clause|rule)\s+\d+[a-z]?', content, re.IGNORECASE)
+            topics.extend(sections)
+            
+            # Legal acts mentioned
+            acts = re.findall(r'\b(?:IPC|BNS|CrPC|BNSS|IEA|BSA|IT Act|Constitution)\b', content, re.IGNORECASE)
+            topics.extend(acts)
+            
+            # Extract key nouns (simplified - take capitalized words that might be legal terms)
+            keywords = re.findall(r'\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b', content)
+            topics.extend(keywords[:3])  # Limit to 3 keywords per message
+    
+    # Remove duplicates while preserving order
+    seen = set()
+    unique_topics = []
+    for topic in topics:
+        topic_lower = topic.lower()
+        if topic_lower not in seen:
+            seen.add(topic_lower)
+            unique_topics.append(topic)
+    
+    return unique_topics[:5]  # Return top 5 topics
+
 def analyze_query_complexity(query: str) -> dict:
     """
     Analyzes query to determine its complexity and type.
@@ -231,6 +271,17 @@ def query_docs(query_text: str, chat_history: List[dict] = [], n_results: int = 
         query_complexity = analyze_query_complexity(effective_query)
         n_results = determine_chunk_count(query_complexity, category_tag)
         
+        # 1b. CHAINED CONTEXT for Kira (Gemini Live style)
+        # Extract topics from conversation history to build context chains
+        conversation_topics = []
+        if persona == 'kira' and chat_history and len(chat_history) > 0:
+            conversation_topics = extract_conversation_topics(chat_history)
+            if conversation_topics:
+                print(f"🔗 Chained context topics detected: {conversation_topics}")
+                # Increase retrieval to cover chained topics
+                n_results = min(n_results + len(conversation_topics) * 2, 15)
+        
+        
         print(f"Query complexity: {query_complexity['type']} (confidence: {query_complexity['confidence']:.2f})")
         print(f"Retrieving {n_results} chunks for optimal context")
         print(f"Output language mode: {language}")
@@ -368,18 +419,20 @@ Task: Answer the user's question using ONLY the provided context. If the answer 
             system_instruction += """
 OUTPUT LANGUAGE REQUIREMENT:
 - You MUST respond in Hindi using Devanagari script (हिंदी में उत्तर दें)
-- Write your entire response in proper Hindi
-- Use appropriate Hindi legal terminology
-- Maintain professional Hindi language throughout
+- CRITICAL: Use SHORT, CONCISE sentences.
+- Be direct and to the point to ensure fast response.
+- Avoid flowery language or long introductions; get straight to the answer.
+- Use appropriate Hindi legal terminology but keep explanations simple.
 """
         elif language == 'hi-romanized':
             system_instruction += """
 OUTPUT LANGUAGE REQUIREMENT:
-- You MUST respond in Hindi but written in Roman script (Latin alphabet)
-- Example: "Dhara 302 ke antargat..." instead of "धारा 302 के अंतर्गत..."
-- Use Romanized Hindi (Hinglish) throughout your response
-- Transliterate Hindi words to Roman script
-- This is also known as "Roman Hindi" or "Hinglish"
+- You MUST respond in "Romanized Hindi" (Hinglish) - Hindi language written in English script.
+- STRICTLY DO NOT use Devanagari script (like "धारा"). Write "Dhara".
+- TONE: Professional yet conversational. Start sentences with English context if needed, but the core explanation should be in understandable Hindi.
+- VOCABULARY: Use common legal terms in English where they are standard (e.g., "Court", "Judge", "Bail", "Compliance", "Penalty") but explain the sentence structure in Hindi.
+- EXAMPLE: "IPC Section 302 ke tehat, agar koi murder karta hai toh use life imprisonment ya death penalty ho sakti hai."
+- CLARITY: Ensure the text is phonetic and easy to read for an Indian English speaker.
 """
         
         # Only add markdown formatting constraints for non-Kira personas
