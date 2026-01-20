@@ -5,7 +5,7 @@ Handles IPC, BNS, and Mapping PDFs.
 import fitz  # PyMuPDF
 import re
 from pathlib import Path
-from typing import Generator
+from typing import Generator, Optional, Tuple, Any
 from dataclasses import dataclass
 
 
@@ -17,6 +17,7 @@ class Section:
     content: str
     language: str  # 'en' or 'hi'
     page_number: int
+    source: str = ""  # 'ipc' or 'bns'
     chapter: Optional[str] = None
     
 
@@ -36,12 +37,12 @@ class PDFParser:
     """Parser for legal PDF documents."""
     
     # Regex patterns for section extraction
-    # - Allow optional 1-2 digit footnote refs before section (e.g., "9[4." means section 4)
+    # - Allow optional superscript footnote refs (¹²³⁴⁵⁶⁷⁸⁹⁰) or regular digits before section
+    # - Allow optional bracket [ before section number
     # - Section number: 1-3 digits (1-999), optional letter suffix (A-Z)
-    # - Title must contain em-dash (—) or double-dash (––) - IPC uses —, BNS uses ––
-    # - This filters out footnotes which don't have dashes
+    # - Title can start with capital letter, quote, or bracket
     SECTION_PATTERN_EN = re.compile(
-        r'(?:^|\n)(?:\d{1,2}\[)?(\d{1,3}[A-Z]?)\.\s+([^—–\n]+(?:—|––)[^\n]*)\n(.*?)(?=(?:^|\n)(?:\d{1,2}\[)?\d{1,3}[A-Z]?\.\s+[A-Z][^—–]*(?:—|––)|\Z)',
+        r'(?:^|\n)(?:[¹²³⁴⁵⁶⁷⁸⁹⁰\d]{0,2}\[)?(\d{1,3}[A-Z]?)\.\s+([^\n]+)\n(.*?)(?=(?:^|\n)(?:[¹²³⁴⁵⁶⁷⁸⁹⁰\d]{0,2}\[)?\d{1,3}[A-Z]?\.\s+[A-Z"\[]|\Z)',
         re.DOTALL
     )
     # Hindi pattern - uses same structure but with Devanagari numerals support
@@ -165,10 +166,10 @@ class PDFParser:
         for match in section_pattern.finditer(full_text_buffer):
             sec_num = match.group(1)
             
-            if is_hindi and use_ocr:
-                # BNS Hindi (OCR) often lacks a clear title line, content starts immediately
-                # Group 2 is "content" in our updated permissive regex
-                title = "Section " + sec_num # Generic title as fallback
+            if is_hindi:
+                # Hindi regex only has 2 groups: (section_number, content)
+                # Extract title from first line of content
+                title = "Section " + sec_num  # Generic title as fallback
                 content = match.group(2).strip()
                 
                 # Try to extract a real title if the first line looks like one
@@ -176,8 +177,9 @@ class PDFParser:
                 if len(first_line) < 100:
                     title = first_line
             else:
+                # English regex has 3 groups: (section_number, title, content)
                 title = match.group(2).strip()
-                content = match.group(3).strip()
+                content = match.group(3).strip() if match.lastindex >= 3 else ""
             
             # Find page number based on match start position
             match_start = match.start()
@@ -259,19 +261,20 @@ class PDFParser:
         
         # Default: One section = One chunk (recommended for legal docs)
         if not split_large or len(content) <= chunk_size:
-            # Use hash of content to ensure uniqueness
+            # Use hash of content + page to ensure uniqueness
             import hashlib
-            content_hash = hashlib.md5(content.encode()).hexdigest()[:8]
+            unique_str = f"{content}{section.page_number}"
+            content_hash = hashlib.md5(unique_str.encode()).hexdigest()[:8]
             yield {
-                "id": f"{section.source}_sec_{section.section_number}_{section.language}_{content_hash}",
+                "id": f"{section.source}_sec_{section.section_number}_{section.language}_p{section.page_number}_{content_hash}",
                 "document": content,
                 "metadata": {
-                    "source": section.source,
-                    "section_number": section.section_number,
-                    "section_title": section.title,
-                    "language": section.language,
-                    "page_number": section.page_number,
-                    "chapter": section.chapter,
+                    "source": section.source or "",
+                    "section_number": section.section_number or "",
+                    "section_title": section.title or "",
+                    "language": section.language or "",
+                    "page_number": section.page_number or 0,
+                    "chapter": section.chapter or "",  # ChromaDB doesn't accept None
                     "chunk_index": 0,
                     "total_chunks": 1,
                     "char_count": len(content)
@@ -295,12 +298,12 @@ class PDFParser:
                     "id": f"{section.source}_sec_{section.section_number}_{section.language}_chunk_{idx}",
                     "document": chunk_text,
                     "metadata": {
-                        "source": section.source,
-                        "section_number": section.section_number,
-                        "section_title": section.title,
-                        "language": section.language,
-                        "page_number": section.page_number,
-                        "chapter": section.chapter,
+                        "source": section.source or "",
+                        "section_number": section.section_number or "",
+                        "section_title": section.title or "",
+                        "language": section.language or "",
+                        "page_number": section.page_number or 0,
+                        "chapter": section.chapter or "",
                         "chunk_index": idx,
                         "total_chunks": len(chunks),
                         "char_count": len(chunk_text)

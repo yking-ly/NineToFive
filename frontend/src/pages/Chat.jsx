@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FaUserAstronaut, FaPaperPlane, FaArrowLeft, FaComments, FaRobot, FaUser, FaFilter } from 'react-icons/fa';
+import { FaUserAstronaut, FaPaperPlane, FaArrowLeft, FaComments, FaRobot, FaUser, FaFilter, FaCopy, FaCheck } from 'react-icons/fa';
 import ReactMarkdown from 'react-markdown';
 
 export default function Chat() {
@@ -8,7 +8,20 @@ export default function Chat() {
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [selectedCollections, setSelectedCollections] = useState(["ipc", "bns", "mapping"]); // All selected by default
+    const [selectedLanguage, setSelectedLanguage] = useState("en"); // "en", "hi", or "all"
+    const [copiedId, setCopiedId] = useState(null); // Track which message was copied
     const messagesEndRef = useRef(null);
+
+    // Copy to clipboard function
+    const copyToClipboard = async (text, id) => {
+        try {
+            await navigator.clipboard.writeText(text);
+            setCopiedId(id);
+            setTimeout(() => setCopiedId(null), 2000); // Reset after 2 seconds
+        } catch (err) {
+            console.error('Failed to copy:', err);
+        }
+    };
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -48,7 +61,8 @@ export default function Chat() {
                 },
                 body: JSON.stringify({
                     query: query,
-                    collections: selectedCollections  // Pass selected filters
+                    collections: selectedCollections,  // Pass selected filters
+                    language: selectedLanguage  // Pass language filter
                 }),
             });
 
@@ -148,26 +162,41 @@ export default function Chat() {
                         /* Message List */
                         <div className="space-y-6 pb-4">
                             {messages.map((msg, idx) => (
-                                <div key={idx} className={`flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'} animate-[slideUp_0.3s_ease-out]`}>
+                                <div key={idx} className={`flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'} animate-[slideUp_0.3s_ease-out] group`}>
                                     {/* Avatar */}
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.role === 'user' ? 'bg-white text-neutral-900' : 'bg-neutral-800 border border-white/10 text-green-400'}`}>
                                         {msg.role === 'user' ? <FaUser className="w-3 h-3" /> : <FaRobot className="w-4 h-4" />}
                                     </div>
 
-                                    {/* Bubble */}
-                                    <div className={`max-w-[80%] rounded-2xl p-4 ${msg.role === 'user' ? 'bg-white text-neutral-900 rounded-tr-sm' : 'glass border border-white/10 text-neutral-200 rounded-tl-sm'}`}>
-                                        {msg.role === 'user' ? (
-                                            msg.content
-                                        ) : (
-                                            <div className="prose prose-invert prose-sm max-w-none">
-                                                <ReactMarkdown>{msg.content}</ReactMarkdown>
-                                                {msg.duration && (
-                                                    <div className="mt-2 pt-2 border-t border-white/5 text-[10px] text-neutral-500 font-mono">
-                                                        Generated in {msg.duration}s
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
+                                    {/* Bubble with Copy Button */}
+                                    <div className="relative max-w-[80%]">
+                                        <div className={`rounded-2xl p-4 ${msg.role === 'user' ? 'bg-white text-neutral-900 rounded-tr-sm' : 'glass border border-white/10 text-neutral-200 rounded-tl-sm'}`}>
+                                            {msg.role === 'user' ? (
+                                                msg.content
+                                            ) : (
+                                                <div className="prose prose-invert prose-sm max-w-none">
+                                                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                                                    {msg.duration && (
+                                                        <div className="mt-2 pt-2 border-t border-white/5 text-[10px] text-neutral-500 font-mono">
+                                                            Generated in {msg.duration}s
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Copy Button */}
+                                        <button
+                                            onClick={() => copyToClipboard(msg.content, idx)}
+                                            className={`absolute ${msg.role === 'user' ? '-left-8' : '-right-8'} top-2 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-white/10 ${copiedId === idx ? 'text-green-400' : 'text-neutral-500 hover:text-white'}`}
+                                            title={copiedId === idx ? 'Copied!' : 'Copy'}
+                                        >
+                                            {copiedId === idx ? (
+                                                <FaCheck className="w-3.5 h-3.5" />
+                                            ) : (
+                                                <FaCopy className="w-3.5 h-3.5" />
+                                            )}
+                                        </button>
                                     </div>
                                 </div>
                             ))}
@@ -207,11 +236,32 @@ export default function Chat() {
                                 key={col.id}
                                 onClick={() => toggleCollection(col.id)}
                                 className={`px-3 py-1.5 rounded-full text-[11px] font-semibold uppercase tracking-wider transition-all duration-200 border ${selectedCollections.includes(col.id)
-                                        ? `bg-gradient-to-r ${col.color} text-white border-transparent shadow-lg`
-                                        : 'bg-neutral-900 text-neutral-500 border-white/10 hover:border-white/20'
+                                    ? `bg-gradient-to-r ${col.color} text-white border-transparent shadow-lg`
+                                    : 'bg-neutral-900 text-neutral-500 border-white/10 hover:border-white/20'
                                     }`}
                             >
                                 {col.label}
+                            </button>
+                        ))}
+
+                        {/* Language Divider */}
+                        <span className="text-neutral-700 mx-1">|</span>
+
+                        {/* Language Toggle */}
+                        {[
+                            { id: 'en', label: 'English', emoji: '🇬🇧' },
+                            { id: 'hi', label: 'हिंदी', emoji: '🇮🇳' },
+                            { id: 'all', label: 'Both', emoji: '🌐' }
+                        ].map(lang => (
+                            <button
+                                key={lang.id}
+                                onClick={() => setSelectedLanguage(lang.id)}
+                                className={`px-2.5 py-1.5 rounded-full text-[11px] font-medium transition-all duration-200 border ${selectedLanguage === lang.id
+                                    ? 'bg-white text-neutral-900 border-white shadow-lg'
+                                    : 'bg-neutral-900 text-neutral-500 border-white/10 hover:border-white/20'
+                                    }`}
+                            >
+                                {lang.label}
                             </button>
                         ))}
                     </div>

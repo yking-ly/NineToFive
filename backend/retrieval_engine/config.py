@@ -6,9 +6,10 @@ from pathlib import Path
 
 
 class Settings(BaseSettings):
-    # Paths
-    DATA_DIR: Path = Path(__file__).parent.parent.parent.parent / "data"
-    CHROMA_PERSIST_DIR: Path = Path(__file__).parent.parent / "chroma_db"
+    # Paths - Updated for new directory structure
+    # backend/retrieval_engine/config.py -> data/ is ../../data
+    DATA_DIR: Path = Path(__file__).parent.parent.parent / "data"
+    CHROMA_PERSIST_DIR: Path = Path(__file__).parent / "chroma_db"
     
     # ChromaDB Collections
     IPC_COLLECTION: str = "ipc"

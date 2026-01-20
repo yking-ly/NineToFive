@@ -11,9 +11,14 @@ env/
 # Environment variables
 .env
 
-# ChromaDB persistence
-chroma_db/
+# ChromaDB persistence (recursively)
+**/chroma_db/
 *.chroma
+
+# Data exports
+data/*.json
+data/case_law/
+
 
 # IDE
 .vscode/

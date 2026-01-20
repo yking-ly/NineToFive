@@ -2,9 +2,9 @@
 Data Ingestion Script - Loads PDFs into ChromaDB
 
 Usage:
-    uv run python scripts/ingest_data.py --all
-    uv run python scripts/ingest_data.py --ipc
-    uv run python scripts/ingest_data.py --bns
+    uv run python backend/scripts/ingest_data.py --all
+    uv run python backend/scripts/ingest_data.py --ipc
+    uv run python backend/scripts/ingest_data.py --bns
 """
 import sys
 from pathlib import Path
@@ -12,14 +12,14 @@ from pathlib import Path
 # Fix Windows encoding
 sys.stdout.reconfigure(encoding='utf-8')
 
-# Add project root to path
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
+# Add backend directory to path (scripts is now at backend/scripts/)
+backend_dir = Path(__file__).parent.parent
+sys.path.insert(0, str(backend_dir))
 
 import argparse
-from services.retrieval_engine.src.config import settings
-from services.retrieval_engine.src.ingestion.pdf_parser import PDFParser
-from services.retrieval_engine.src.vector_store.chroma_client import ChromaDBClient
+from retrieval_engine.config import settings
+from retrieval_engine.ingestion.pdf_parser import PDFParser
+from retrieval_engine.vector_store.chroma_client import ChromaDBClient
 
 
 # PDF Page Configurations (skip TOC, parse content only)
@@ -65,10 +65,21 @@ def ingest_ipc(parser: PDFParser, chroma: ChromaDBClient):
         
         print(f"      Sections extracted: {section_count}")
     
+    # Deduplicate chunks by ID (keep first occurrence only)
+    seen_ids = set()
+    unique_chunks = []
+    for chunk in all_chunks:
+        if chunk["id"] not in seen_ids:
+            seen_ids.add(chunk["id"])
+            unique_chunks.append(chunk)
+    
+    if len(unique_chunks) < len(all_chunks):
+        print(f"      [Dedupe] Removed {len(all_chunks) - len(unique_chunks)} duplicates")
+    
     # Add to ChromaDB
-    if all_chunks:
-        print(f"\n[ChromaDB] Adding {len(all_chunks)} chunks to '{settings.IPC_COLLECTION}'...")
-        added = chroma.add_documents(settings.IPC_COLLECTION, all_chunks)
+    if unique_chunks:
+        print(f"\n[ChromaDB] Adding {len(unique_chunks)} chunks to '{settings.IPC_COLLECTION}'...")
+        added = chroma.add_documents(settings.IPC_COLLECTION, unique_chunks)
         print(f"[OK] Added {added} documents to ChromaDB")
     else:
         print("\n[WARNING] No chunks to add")

@@ -7,11 +7,13 @@ import pdfplumber
 import re
 
 sys.stdout.reconfigure(encoding='utf-8')
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
 
-from services.retrieval_engine.src.vector_store.chroma_client import ChromaDBClient
-from services.retrieval_engine.src.config import settings
+# Add backend directory to path
+backend_dir = Path(__file__).parent.parent
+sys.path.insert(0, str(backend_dir))
+
+from retrieval_engine.vector_store.chroma_client import ChromaDBClient
+from retrieval_engine.config import settings
 
 def clean_text(text):
     if not text:

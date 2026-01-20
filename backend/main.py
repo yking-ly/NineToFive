@@ -48,6 +48,7 @@ except Exception as e:
 class ChatRequest(BaseModel):
     query: str
     collections: Optional[List[str]] = None  # e.g., ["ipc"], ["bns"], ["mapping"], or ["ipc", "bns"]
+    language: Optional[str] = "en"  # "en", "hi", or "all"
 
 # ------------------------------------------------------------------
 # Endpoints
@@ -153,7 +154,7 @@ async def upload_file(file: UploadFile = File(...)):
 @app.post("/api/chat")
 def chat(request: ChatRequest):
     """
-    RAG Chat Endpoint.
+    RAG Chat Endpoint with full response caching.
     Defined as synchronous `def` so FastAPI runs it in a threadpool, 
     preventing the sync ChromaDB client from blocking the main loop.
     """
@@ -162,20 +163,48 @@ def chat(request: ChatRequest):
         
     start_time = time.time()
     
-    # 1. Retrieve (with optional collection filtering)
-    context = rag_service.query_statutes(request.query, collections=request.collections)
+    # Generate cache key from query + collections + language
+    cache_key = f"answer:{request.query}:{sorted(request.collections) if request.collections else 'all'}:{request.language}"
+    
+    # Check if full answer is cached
+    if rag_service.cache.enabled:
+        cached_answer = rag_service.cache.client.get(cache_key)
+        if cached_answer:
+            print(f"[Cache] FULL ANSWER HIT for: {request.query[:30]}...")
+            cached_data = json.loads(cached_answer)
+            duration = time.time() - start_time
+            return {
+                "status": "success",
+                "query": request.query,
+                "answer": cached_data["answer"],
+                "context": cached_data["context"],
+                "duration_seconds": round(duration, 3),
+                "cached": True
+            }
+    
+    # 1. Retrieve (with optional collection and language filtering)
+    context = rag_service.query_statutes(request.query, collections=request.collections, language=request.language)
     
     # 2. Answer
     answer = rag_service.generate_answer(request.query, context)
     
     duration = time.time() - start_time
     
+    # Cache the full response (answer + context) for 1 hour
+    if rag_service.cache.enabled:
+        try:
+            cache_data = json.dumps({"answer": answer, "context": context})
+            rag_service.cache.client.setex(cache_key, 3600, cache_data)
+        except Exception as e:
+            print(f"[Cache Warning] Failed to cache answer: {e}")
+    
     return {
         "status": "success",
         "query": request.query,
         "answer": answer,
         "context": context,
-        "duration_seconds": round(duration, 3)
+        "duration_seconds": round(duration, 3),
+        "cached": False
     }
 
 if __name__ == "__main__":
