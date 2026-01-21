@@ -1,0 +1,1284 @@
+{
+    "categories": [
+        {
+            "category_hindi": "इच्छेग्या, आपराधिक षडयंत्र, प्रयत्न",
+            "category_english": "Criminal Intention, Conspiracy, and Attempt",
+            "description": "Covers common intention, unlawful assembly, criminal conspiracy, and attempts to commit offences",
+            "mappings": [
+                {
+                    "ipc": "34",
+                    "bns": "3(5)",
+                    "subject": "Common intention - Acts done by several persons in furtherance of common intention"
+                },
+                {
+                    "ipc": "149",
+                    "bns": "190",
+                    "subject": "Every member of unlawful assembly guilty of offence committed in prosecution of common object"
+                },
+                {
+                    "ipc": "120B",
+                    "bns": "61",
+                    "subject": "Criminal conspiracy"
+                },
+                {
+                    "ipc": "511",
+                    "bns": "62",
+                    "subject": "Punishment for attempting to commit offences"
+                }
+            ]
+        },
+        {
+            "category_hindi": "शरीर के विरुद्ध गंभीर",
+            "category_english": "Grave Offences Against the Body",
+            "description": "Covers murder, culpable homicide, and attempts to commit these offences",
+            "mappings": [
+                {
+                    "ipc": "302",
+                    "bns": "103(1)",
+                    "subject": "Punishment for murder"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "103(2)",
+                    "subject": "Murder by group of five or more on grounds of race, caste, religion, language, etc. (NEW)"
+                },
+                {
+                    "ipc": "304",
+                    "bns": "105",
+                    "subject": "Punishment for culpable homicide not amounting to murder"
+                },
+                {
+                    "ipc": "307",
+                    "bns": "109",
+                    "subject": "Attempt to murder"
+                },
+                {
+                    "ipc": "308",
+                    "bns": "110",
+                    "subject": "Attempt to commit culpable homicide"
+                }
+            ]
+        },
+        {
+            "category_hindi": "चोरी संबंधी अपराध",
+            "category_english": "Theft-Related Offences",
+            "description": "Covers theft, snatching, and aggravated forms of theft",
+            "mappings": [
+                {
+                    "ipc": "379",
+                    "bns": "303(2)",
+                    "subject": "Punishment for theft"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "304",
+                    "subject": "Snatching (NEW)"
+                },
+                {
+                    "ipc": "380",
+                    "bns": "305a",
+                    "subject": "Theft in dwelling house, means of transportation, or place of worship"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "305(b)",
+                    "subject": "Theft after preparation made for causing death, hurt or restraint (NEW)"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "305(c)",
+                    "subject": "Aggravated theft (NEW)"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "305(d)",
+                    "subject": "Theft with causing hurt (NEW)"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "305(e)",
+                    "subject": "Theft with deception (NEW)"
+                }
+            ]
+        },
+        {
+            "category_hindi": "महिला संबंधी अन्य अपराध",
+            "category_english": "Other Offences Against Women",
+            "description": "Covers assault on women, sexual harassment, voyeurism, stalking, and insult to modesty",
+            "mappings": [
+                {
+                    "ipc": "354",
+                    "bns": "74",
+                    "subject": "Assault or criminal force to woman with intent to outrage her modesty"
+                },
+                {
+                    "ipc": "354A",
+                    "bns": "75",
+                    "subject": "Sexual harassment"
+                },
+                {
+                    "ipc": "354B",
+                    "bns": "76",
+                    "subject": "Assault or use of criminal force to woman with intent to disrobe"
+                },
+                {
+                    "ipc": "354C",
+                    "bns": "77",
+                    "subject": "Voyeurism"
+                },
+                {
+                    "ipc": "354D",
+                    "bns": "78",
+                    "subject": "Stalking"
+                },
+                {
+                    "ipc": "509",
+                    "bns": "79",
+                    "subject": "Word, gesture or act intended to insult the modesty of a woman"
+                }
+            ]
+        },
+        {
+            "category_hindi": "उपहती संबंधी अपराध",
+            "category_english": "Hurt-Related Offences",
+            "description": "Covers voluntarily causing hurt, grievous hurt, acid attacks, and hurt to extort or deter public servants",
+            "mappings": [
+                {
+                    "ipc": "323",
+                    "bns": "115(2)",
+                    "subject": "Punishment for voluntarily causing hurt"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "117(4)",
+                    "subject": "Causing hurt on grounds of race, caste, religion, etc. by group (NEW)"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "117(3)",
+                    "subject": "Causing grievous hurt resulting in permanent disability or vegetative state (NEW)"
+                },
+                {
+                    "ipc": "324",
+                    "bns": "118(1)",
+                    "subject": "Voluntarily causing hurt by dangerous weapons or means"
+                },
+                {
+                    "ipc": "325",
+                    "bns": "117(2)",
+                    "subject": "Punishment for voluntarily causing grievous hurt"
+                },
+                {
+                    "ipc": "326",
+                    "bns": "118(2)",
+                    "subject": "Voluntarily causing grievous hurt by dangerous weapons or means"
+                },
+                {
+                    "ipc": "326A",
+                    "bns": "124(1)",
+                    "subject": "Voluntarily causing grievous hurt by use of acid"
+                },
+                {
+                    "ipc": "326B",
+                    "bns": "124(2)",
+                    "subject": "Voluntarily throwing or attempting to throw acid"
+                },
+                {
+                    "ipc": "327",
+                    "bns": "119(1)",
+                    "subject": "Voluntarily causing hurt to extort property or constrain to illegal act"
+                },
+                {
+                    "ipc": "328",
+                    "bns": "123",
+                    "subject": "Causing hurt by means of poison with intent to commit an offence"
+                },
+                {
+                    "ipc": "329",
+                    "bns": "119(2)",
+                    "subject": "Voluntarily causing grievous hurt to extort property"
+                },
+                {
+                    "ipc": "330",
+                    "bns": "120(1)",
+                    "subject": "Voluntarily causing hurt to extort confession or compel restoration of property"
+                },
+                {
+                    "ipc": "331",
+                    "bns": "120(2)",
+                    "subject": "Voluntarily causing grievous hurt to extort confession"
+                },
+                {
+                    "ipc": "332",
+                    "bns": "121(1)",
+                    "subject": "Voluntarily causing hurt to deter public servant from his duty"
+                },
+                {
+                    "ipc": "333",
+                    "bns": "121(2)",
+                    "subject": "Voluntarily causing grievous hurt to deter public servant from his duty"
+                }
+            ]
+        },
+        {
+            "category_hindi": "उद्घापन संबंधी अपराध",
+            "category_english": "Extortion-Related Offences",
+            "description": "Covers extortion through threats of injury, death, grievous hurt, or false accusations",
+            "mappings": [
+                {
+                    "ipc": "384",
+                    "bns": "308(2)",
+                    "subject": "Punishment for extortion"
+                },
+                {
+                    "ipc": "385",
+                    "bns": "308(3)",
+                    "subject": "Putting person in fear of injury in order to commit extortion"
+                },
+                {
+                    "ipc": "386",
+                    "bns": "308(4)",
+                    "subject": "Extortion by putting a person in fear of death or of grievous hurt"
+                },
+                {
+                    "ipc": "387",
+                    "bns": "308(5)",
+                    "subject": "Putting person in fear of death or of grievous hurt in order to commit extortion"
+                },
+                {
+                    "ipc": "388",
+                    "bns": "308(6)",
+                    "subject": "Extortion by threat of accusation of an offence punishable with death or imprisonment for life"
+                },
+                {
+                    "ipc": "389",
+                    "bns": "308(7)",
+                    "subject": "Putting person in fear of accusation of offence in order to commit extortion"
+                }
+            ]
+        },
+        {
+            "category_hindi": "महिला संबंधी लैंगिक अपराध",
+            "category_english": "Sexual Offences Against Women",
+            "description": "Covers rape, gang rape, and various forms of sexual violence against women",
+            "mappings": [
+                {
+                    "ipc": "376(1)",
+                    "bns": "64(1)",
+                    "subject": "Punishment for rape"
+                },
+                {
+                    "ipc": "376(2)",
+                    "bns": "64(2)",
+                    "subject": "Punishment for rape by police officer, public servant, armed forces, etc."
+                },
+                {
+                    "ipc": "376(3)",
+                    "bns": "65(1)",
+                    "subject": "Punishment for rape on woman under sixteen years of age"
+                },
+                {
+                    "ipc": "376AB",
+                    "bns": "65(2)",
+                    "subject": "Punishment for rape on woman under twelve years of age"
+                },
+                {
+                    "ipc": "376A",
+                    "bns": "66",
+                    "subject": "Punishment for causing death or resulting in persistent vegetative state of victim"
+                },
+                {
+                    "ipc": "376B",
+                    "bns": "67",
+                    "subject": "Sexual intercourse by husband upon his wife during separation"
+                },
+                {
+                    "ipc": "376C",
+                    "bns": "68",
+                    "subject": "Sexual intercourse by a person in authority"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "69",
+                    "subject": "Sexual intercourse by employing deceitful means or false promise of marriage (NEW)"
+                },
+                {
+                    "ipc": "376D",
+                    "bns": "70(1)",
+                    "subject": "Gang rape"
+                },
+                {
+                    "ipc": "376DA, 376DB",
+                    "bns": "70(2)",
+                    "subject": "Gang rape on woman under the age of eighteen years"
+                }
+            ]
+        },
+        {
+            "category_hindi": "व्यपहरण/अपहरण संबंधी अपराध",
+            "category_english": "Kidnapping/Abduction-Related Offences",
+            "description": "Covers kidnapping, abduction, trafficking, and exploitation of persons",
+            "mappings": [
+                {
+                    "ipc": "363",
+                    "bns": "137",
+                    "subject": "Punishment for kidnapping"
+                },
+                {
+                    "ipc": "363A",
+                    "bns": "139",
+                    "subject": "Kidnapping or maiming a child for purposes of begging"
+                },
+                {
+                    "ipc": "364",
+                    "bns": "140(1)",
+                    "subject": "Kidnapping or abducting in order to murder"
+                },
+                {
+                    "ipc": "364A",
+                    "bns": "140(2)",
+                    "subject": "Kidnapping for ransom"
+                },
+                {
+                    "ipc": "365",
+                    "bns": "140(3)",
+                    "subject": "Kidnapping or abducting with intent secretly and wrongfully to confine person"
+                },
+                {
+                    "ipc": "366",
+                    "bns": "87",
+                    "subject": "Kidnapping, abducting or inducing woman to compel her marriage"
+                },
+                {
+                    "ipc": "366A",
+                    "bns": "96",
+                    "subject": "Procuration of child"
+                },
+                {
+                    "ipc": "366B",
+                    "bns": "141",
+                    "subject": "Importation of girl or boy from foreign country"
+                },
+                {
+                    "ipc": "367",
+                    "bns": "140(4)",
+                    "subject": "Kidnapping or abducting in order to subject person to grievous hurt, slavery, etc."
+                },
+                {
+                    "ipc": "368",
+                    "bns": "142",
+                    "subject": "Wrongfully concealing or keeping in confinement, kidnapped or abducted person"
+                },
+                {
+                    "ipc": "369",
+                    "bns": "97",
+                    "subject": "Kidnapping or abducting child under ten years with intent to steal from its person"
+                },
+                {
+                    "ipc": "370",
+                    "bns": "143",
+                    "subject": "Trafficking of person"
+                },
+                {
+                    "ipc": "370A",
+                    "bns": "144",
+                    "subject": "Exploitation of a trafficked person"
+                },
+                {
+                    "ipc": "371",
+                    "bns": "145",
+                    "subject": "Habitual dealing in slaves"
+                },
+                {
+                    "ipc": "372",
+                    "bns": "98",
+                    "subject": "Selling child for purposes of prostitution"
+                },
+                {
+                    "ipc": "373",
+                    "bns": "99",
+                    "subject": "Buying child for purposes of prostitution"
+                },
+                {
+                    "ipc": "374",
+                    "bns": "146",
+                    "subject": "Unlawful compulsory labour"
+                }
+            ]
+        },
+        {
+            "category_hindi": "लूट संबंधी",
+            "category_english": "Robbery-Related Offences",
+            "description": "Covers robbery, attempts to commit robbery, and causing hurt during robbery",
+            "mappings": [
+                {
+                    "ipc": "392",
+                    "bns": "309(4)",
+                    "subject": "Punishment for robbery"
+                },
+                {
+                    "ipc": "393",
+                    "bns": "309(5)",
+                    "subject": "Attempt to commit robbery"
+                },
+                {
+                    "ipc": "394",
+                    "bns": "309(6)",
+                    "subject": "Voluntarily causing hurt in committing robbery"
+                }
+            ]
+        },
+        {
+            "category_hindi": "विवाह संबंधी अपराध",
+            "category_english": "Marriage-Related Offences",
+            "description": "Covers dowry death, cruelty by husband or relatives, and abetment of suicide",
+            "mappings": [
+                {
+                    "ipc": "304B",
+                    "bns": "80",
+                    "subject": "Dowry death"
+                },
+                {
+                    "ipc": "498A",
+                    "bns": "85",
+                    "subject": "Husband or relative of husband of a woman subjecting her to cruelty"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "86",
+                    "subject": "Cruelty defined (NEW)"
+                },
+                {
+                    "ipc": "306",
+                    "bns": "108",
+                    "subject": "Abetment of suicide"
+                }
+            ]
+        },
+        {
+            "category_hindi": "बालको के विरुद्ध अपराध",
+            "category_english": "Offences Against Children",
+            "description": "Covers child-specific offences including trafficking, exploitation, kidnapping, and abetment of suicide",
+            "mappings": [
+                {
+                    "ipc": "New",
+                    "bns": "95",
+                    "subject": "Hiring, employing or engaging a child to commit an offence (NEW)"
+                },
+                {
+                    "ipc": "366A",
+                    "bns": "96",
+                    "subject": "Procuration of child"
+                },
+                {
+                    "ipc": "369",
+                    "bns": "97",
+                    "subject": "Kidnapping or abducting child under ten years with intent to steal from its person"
+                },
+                {
+                    "ipc": "372",
+                    "bns": "98",
+                    "subject": "Selling child for purposes of prostitution"
+                },
+                {
+                    "ipc": "373",
+                    "bns": "99",
+                    "subject": "Buying child for purposes of prostitution"
+                },
+                {
+                    "ipc": "363",
+                    "bns": "137",
+                    "subject": "Punishment for kidnapping (child-specific)"
+                },
+                {
+                    "ipc": "370",
+                    "bns": "143",
+                    "subject": "Trafficking of person (child-specific)"
+                },
+                {
+                    "ipc": "370A",
+                    "bns": "144",
+                    "subject": "Exploitation of a trafficked person (child-specific)"
+                },
+                {
+                    "ipc": "305",
+                    "bns": "107",
+                    "subject": "Abetment of suicide of child or person of unsound mind"
+                }
+            ]
+        },
+        {
+            "category_hindi": "सड़क दुर्घटना संबंधी अपराध",
+            "category_english": "Road Accident/Traffic-Related Offences",
+            "description": "Covers rash driving, causing hurt or death by negligence, and mischief on roads",
+            "mappings": [
+                {
+                    "ipc": "279",
+                    "bns": "281",
+                    "subject": "Rash driving or riding on a public way"
+                },
+                {
+                    "ipc": "337",
+                    "bns": "125(A)",
+                    "subject": "Causing hurt by act endangering life or personal safety of others"
+                },
+                {
+                    "ipc": "338",
+                    "bns": "125(B)",
+                    "subject": "Causing grievous hurt by act endangering life or personal safety of others"
+                },
+                {
+                    "ipc": "304A",
+                    "bns": "106(1)",
+                    "subject": "Causing death by negligence"
+                },
+                {
+                    "ipc": "427",
+                    "bns": "324(4),(5)",
+                    "subject": "Mischief causing damage to the amount of twenty thousand rupees or more"
+                },
+                {
+                    "ipc": "429",
+                    "bns": "325",
+                    "subject": "Mischief by killing or maiming animal"
+                }
+            ]
+        },
+        {
+            "category_hindi": "छल संबंधी अपराध",
+            "category_english": "Cheating/Fraud-Related Offences",
+            "description": "Covers cheating, cheating by personation, and fraudulent inducement",
+            "mappings": [
+                {
+                    "ipc": "416",
+                    "bns": "319(1)",
+                    "subject": "Cheating by personation"
+                },
+                {
+                    "ipc": "417",
+                    "bns": "318(2)",
+                    "subject": "Punishment for cheating"
+                },
+                {
+                    "ipc": "418",
+                    "bns": "318(3)",
+                    "subject": "Cheating with knowledge that wrongful loss may ensue to person whose interest offender is bound to protect"
+                },
+                {
+                    "ipc": "419",
+                    "bns": "319(2)",
+                    "subject": "Punishment for cheating by personation"
+                },
+                {
+                    "ipc": "420",
+                    "bns": "318(4)",
+                    "subject": "Cheating and dishonestly inducing delivery of property"
+                }
+            ]
+        },
+        {
+            "category_hindi": "चुराई हुई संपत्ति संबंधी अपराध",
+            "category_english": "Stolen Property-Related Offences",
+            "description": "Covers dishonestly receiving, dealing in, and concealing stolen property",
+            "mappings": [
+                {
+                    "ipc": "411",
+                    "bns": "317(2)",
+                    "subject": "Dishonestly receiving stolen property"
+                },
+                {
+                    "ipc": "412",
+                    "bns": "317(3)",
+                    "subject": "Dishonestly receiving property stolen in the commission of a dacoity"
+                },
+                {
+                    "ipc": "413",
+                    "bns": "317(4)",
+                    "subject": "Habitually dealing in stolen property"
+                },
+                {
+                    "ipc": "414",
+                    "bns": "317(5)",
+                    "subject": "Assisting in concealment of stolen property"
+                }
+            ]
+        },
+        {
+            "category_hindi": "सदोष अवरोध / परिरोध संबंधी अपराध",
+            "category_english": "Wrongful Restraint/Confinement-Related Offences",
+            "description": "Covers wrongful restraint and various forms of wrongful confinement",
+            "mappings": [
+                {
+                    "ipc": "339",
+                    "bns": "126(1)",
+                    "subject": "Wrongful restraint"
+                },
+                {
+                    "ipc": "340",
+                    "bns": "126(2)",
+                    "subject": "Punishment for wrongful restraint"
+                },
+                {
+                    "ipc": "341",
+                    "bns": "127(1)",
+                    "subject": "Wrongful confinement"
+                },
+                {
+                    "ipc": "342",
+                    "bns": "127(2)",
+                    "subject": "Punishment for wrongful confinement"
+                },
+                {
+                    "ipc": "343",
+                    "bns": "127(3)",
+                    "subject": "Wrongful confinement for three or more days"
+                },
+                {
+                    "ipc": "344",
+                    "bns": "127(4)",
+                    "subject": "Wrongful confinement for ten or more days"
+                },
+                {
+                    "ipc": "345",
+                    "bns": "127(5)",
+                    "subject": "Wrongful confinement of person for whose liberation writ has been issued"
+                },
+                {
+                    "ipc": "346",
+                    "bns": "127(6)",
+                    "subject": "Wrongful confinement in secret"
+                },
+                {
+                    "ipc": "347",
+                    "bns": "127(7)",
+                    "subject": "Wrongful confinement to extort property or constrain to illegal act"
+                },
+                {
+                    "ipc": "348",
+                    "bns": "127(8)",
+                    "subject": "Wrongful confinement to extort confession or compel restoration of property"
+                }
+            ]
+        },
+        {
+            "category_hindi": "आपराधिक न्यास भंग संबंधी अपराध",
+            "category_english": "Criminal Breach of Trust-Related Offences",
+            "description": "Covers criminal breach of trust by various persons including carriers, servants, and public officials",
+            "mappings": [
+                {
+                    "ipc": "406",
+                    "bns": "316(2)",
+                    "subject": "Punishment for criminal breach of trust"
+                },
+                {
+                    "ipc": "407",
+                    "bns": "316(3)",
+                    "subject": "Criminal breach of trust by carrier, wharfinger, etc."
+                },
+                {
+                    "ipc": "408",
+                    "bns": "316(4)",
+                    "subject": "Criminal breach of trust by clerk or servant"
+                },
+                {
+                    "ipc": "409",
+                    "bns": "316(5)",
+                    "subject": "Criminal breach of trust by public servant, or by banker, merchant or agent"
+                }
+            ]
+        },
+        {
+            "category_hindi": "संपत्ति से संबंधी अपराध",
+            "category_english": "Property Damage/Mischief-Related Offences",
+            "description": "Covers various forms of mischief causing damage to public and private property",
+            "mappings": [
+                {
+                    "ipc": "426",
+                    "bns": "324(2)",
+                    "subject": "Punishment for mischief"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "324(3)",
+                    "subject": "Mischief causing loss or damage to property including government or local authority property (NEW)"
+                },
+                {
+                    "ipc": "427",
+                    "bns": "324(4),(5)",
+                    "subject": "Mischief causing damage to the amount of twenty thousand rupees and more"
+                },
+                {
+                    "ipc": "428+429",
+                    "bns": "325",
+                    "subject": "Mischief by killing or maiming animal"
+                },
+                {
+                    "ipc": "430",
+                    "bns": "326A",
+                    "subject": "Mischief by injury to works of irrigation or by wrongfully diverting water"
+                },
+                {
+                    "ipc": "431",
+                    "bns": "326B",
+                    "subject": "Mischief by injury to public road, bridge, river or channel"
+                },
+                {
+                    "ipc": "432",
+                    "bns": "326C",
+                    "subject": "Mischief by causing inundation or obstruction to public drainage attended with damage"
+                },
+                {
+                    "ipc": "433",
+                    "bns": "326D",
+                    "subject": "Mischief by destroying, moving or rendering less useful a light-house or sea-mark"
+                },
+                {
+                    "ipc": "434",
+                    "bns": "326E",
+                    "subject": "Mischief by destroying or moving, etc., a land-mark fixed by public authority"
+                },
+                {
+                    "ipc": "435",
+                    "bns": "326F",
+                    "subject": "Mischief by fire or explosive substance with intent to cause damage"
+                },
+                {
+                    "ipc": "436",
+                    "bns": "326G",
+                    "subject": "Mischief by fire or explosive substance with intent to destroy house"
+                },
+                {
+                    "ipc": "437",
+                    "bns": "327(1)",
+                    "subject": "Mischief with intent to destroy or make unsafe a rail, aircraft, decked vessel"
+                },
+                {
+                    "ipc": "438",
+                    "bns": "327(8)",
+                    "subject": "Punishment for the above offence"
+                },
+                {
+                    "ipc": "439",
+                    "bns": "328",
+                    "subject": "Punishment for intentionally running vessel aground or ashore with intent to commit theft"
+                },
+                {
+                    "ipc": "440",
+                    "bns": "324(6)",
+                    "subject": "Mischief committed after preparation made for causing death or hurt"
+                }
+            ]
+        },
+        {
+            "category_hindi": "लोक सेवक के विरुद्ध अपराध",
+            "category_english": "Offences Against Public Servants",
+            "description": "Covers offences specifically targeting public servants in discharge of their duties",
+            "mappings": [
+                {
+                    "ipc": "186",
+                    "bns": "221",
+                    "subject": "Obstructing public servant in discharge of public functions"
+                },
+                {
+                    "ipc": "332",
+                    "bns": "121(1)",
+                    "subject": "Voluntarily causing hurt to deter public servant from his duty"
+                },
+                {
+                    "ipc": "333",
+                    "bns": "121(2)",
+                    "subject": "Voluntarily causing grievous hurt to deter public servant from his duty"
+                },
+                {
+                    "ipc": "353",
+                    "bns": "132",
+                    "subject": "Assault or criminal force to deter public servant from discharge of his duty"
+                }
+            ]
+        },
+        {
+            "category_hindi": "आपराधिक अतिचार संबंधी अपराध",
+            "category_english": "Criminal Trespass/House-Breaking Related Offences",
+            "description": "Covers criminal trespass, house-trespass, house-breaking, and related aggravated forms",
+            "mappings": [
+                {
+                    "ipc": "441",
+                    "bns": "329(1)",
+                    "subject": "Criminal trespass"
+                },
+                {
+                    "ipc": "442",
+                    "bns": "329(2)",
+                    "subject": "House-trespass"
+                },
+                {
+                    "ipc": "443",
+                    "bns": "330(1)",
+                    "subject": "Lurking house-trespass"
+                },
+                {
+                    "ipc": "445",
+                    "bns": "330(2)",
+                    "subject": "House-breaking"
+                },
+                {
+                    "ipc": "447",
+                    "bns": "329(3)",
+                    "subject": "Punishment for criminal trespass"
+                },
+                {
+                    "ipc": "448",
+                    "bns": "329(4)",
+                    "subject": "Punishment for house-trespass"
+                },
+                {
+                    "ipc": "449",
+                    "bns": "332(A)",
+                    "subject": "House-trespass in order to commit offence punishable with death"
+                },
+                {
+                    "ipc": "450",
+                    "bns": "332(B)",
+                    "subject": "House-trespass in order to commit offence punishable with imprisonment for life"
+                },
+                {
+                    "ipc": "451",
+                    "bns": "332(C)",
+                    "subject": "House-trespass in order to commit offence punishable with imprisonment"
+                },
+                {
+                    "ipc": "452",
+                    "bns": "333",
+                    "subject": "House-trespass after preparation for hurt, assault or wrongful restraint"
+                },
+                {
+                    "ipc": "453",
+                    "bns": "331(1)",
+                    "subject": "Punishment for lurking house-trespass or house-breaking"
+                },
+                {
+                    "ipc": "454",
+                    "bns": "331(3)",
+                    "subject": "Lurking house-trespass or house-breaking in order to commit offence punishable with imprisonment"
+                },
+                {
+                    "ipc": "455",
+                    "bns": "331(5)",
+                    "subject": "Lurking house-trespass or house-breaking after preparation for hurt, assault or wrongful restraint"
+                },
+                {
+                    "ipc": "456",
+                    "bns": "331(2)",
+                    "subject": "Punishment for lurking house-trespass or house-breaking by night"
+                },
+                {
+                    "ipc": "457",
+                    "bns": "331(4)",
+                    "subject": "Lurking house-trespass or house-breaking by night in order to commit offence punishable with imprisonment"
+                },
+                {
+                    "ipc": "458",
+                    "bns": "331(6)",
+                    "subject": "Lurking house-trespass or house-breaking by night after preparation for hurt, assault or wrongful restraint"
+                },
+                {
+                    "ipc": "459",
+                    "bns": "331(7)",
+                    "subject": "Grievous hurt caused whilst committing lurking house-trespass or house-breaking"
+                },
+                {
+                    "ipc": "460",
+                    "bns": "331(8)",
+                    "subject": "All persons jointly concerned in lurking house-trespass or house-breaking by night punishable where death or grievous hurt caused by one of them"
+                },
+                {
+                    "ipc": "461",
+                    "bns": "334(1)",
+                    "subject": "Dishonestly breaking open receptacle containing property"
+                },
+                {
+                    "ipc": "462",
+                    "bns": "334(2)",
+                    "subject": "Punishment for same offence when committed by person entrusted with custody"
+                }
+            ]
+        },
+        {
+            "category_hindi": "अन्य उपयोगी धाराएं",
+            "category_english": "Other Useful/Miscellaneous Sections",
+            "description": "Covers various important sections including public servant offences, election offences, obscenity, religious offences, and criminal intimidation",
+            "mappings": [
+                {
+                    "ipc": "166A",
+                    "bns": "199",
+                    "subject": "Public servant disobeying direction under law"
+                },
+                {
+                    "ipc": "166B",
+                    "bns": "200",
+                    "subject": "Punishment for non-treatment of victim"
+                },
+                {
+                    "ipc": "171E",
+                    "bns": "173",
+                    "subject": "Punishment for bribery in elections"
+                },
+                {
+                    "ipc": "182/211",
+                    "bns": "217/248",
+                    "subject": "False information with intent to cause public servant to use his lawful power to the injury of another"
+                },
+                {
+                    "ipc": "187",
+                    "bns": "222",
+                    "subject": "Omission to assist public servant when bound by law to give assistance"
+                },
+                {
+                    "ipc": "188",
+                    "bns": "223",
+                    "subject": "Disobedience to order duly promulgated by public servant"
+                },
+                {
+                    "ipc": "201",
+                    "bns": "238",
+                    "subject": "Causing disappearance of evidence of offence, or giving false information to screen offender"
+                },
+                {
+                    "ipc": "228A Section 1,2",
+                    "bns": "72",
+                    "subject": "Disclosure of identity of victim of certain offences"
+                },
+                {
+                    "ipc": "293",
+                    "bns": "295",
+                    "subject": "Sale of obscene objects to young person"
+                },
+                {
+                    "ipc": "294",
+                    "bns": "296",
+                    "subject": "Obscene acts and songs"
+                },
+                {
+                    "ipc": "295A",
+                    "bns": "299",
+                    "subject": "Deliberate and malicious acts intended to outrage religious feelings of any class"
+                },
+                {
+                    "ipc": "489C",
+                    "bns": "180",
+                    "subject": "Possession of forged or counterfeit currency-notes or bank-notes"
+                },
+                {
+                    "ipc": "506",
+                    "bns": "351(2)",
+                    "subject": "Criminal intimidation"
+                },
+                {
+                    "ipc": "506 Part II",
+                    "bns": "351(3)",
+                    "subject": "Criminal intimidation by anonymous communication"
+                },
+                {
+                    "ipc": "510",
+                    "bns": "355",
+                    "subject": "Misconduct in public by a drunken person"
+                }
+            ]
+        },
+        {
+            "category_hindi": "लोक प्रशांति के विरुद्ध अपराध",
+            "category_english": "Offences Against Public Tranquility/Peace",
+            "description": "Covers unlawful assembly, rioting, promoting enmity between groups, and acts prejudicial to national integration",
+            "mappings": [
+                {
+                    "ipc": "143",
+                    "bns": "189(2)",
+                    "subject": "Being member of unlawful assembly"
+                },
+                {
+                    "ipc": "144",
+                    "bns": "189(4)",
+                    "subject": "Joining unlawful assembly armed with deadly weapon"
+                },
+                {
+                    "ipc": "145",
+                    "bns": "189(3)",
+                    "subject": "Joining or continuing in unlawful assembly knowing it has been commanded to disperse"
+                },
+                {
+                    "ipc": "146",
+                    "bns": "191(1)",
+                    "subject": "Rioting"
+                },
+                {
+                    "ipc": "147",
+                    "bns": "191(2)",
+                    "subject": "Punishment for rioting"
+                },
+                {
+                    "ipc": "148",
+                    "bns": "191(3)",
+                    "subject": "Rioting, armed with deadly weapon"
+                },
+                {
+                    "ipc": "149",
+                    "bns": "190",
+                    "subject": "Every member of unlawful assembly guilty of offence committed in prosecution of common object"
+                },
+                {
+                    "ipc": "150",
+                    "bns": "189(6)",
+                    "subject": "Hiring, or conniving at hiring, of persons to join unlawful assembly"
+                },
+                {
+                    "ipc": "151",
+                    "bns": "189(5)",
+                    "subject": "Knowingly joining or continuing in assembly of five or more persons after it has been commanded to disperse"
+                },
+                {
+                    "ipc": "152",
+                    "bns": "195",
+                    "subject": "Assaulting or obstructing public servant when suppressing riot"
+                },
+                {
+                    "ipc": "153",
+                    "bns": "192",
+                    "subject": "Wantonly giving provocation with intent to cause riot"
+                },
+                {
+                    "ipc": "153A",
+                    "bns": "196",
+                    "subject": "Promoting enmity between different groups on grounds of religion, race, place of birth, residence, language, etc."
+                },
+                {
+                    "ipc": "153B",
+                    "bns": "197",
+                    "subject": "Imputations, assertions prejudicial to national integration"
+                }
+            ]
+        },
+        {
+            "category_hindi": "कूटरचना/मिथ्या दस्तावेज संबंधी अपराध",
+            "category_english": "Forgery/False Document-Related Offences",
+            "description": "Covers forgery, making false documents, and using forged documents",
+            "mappings": [
+                {
+                    "ipc": "464",
+                    "bns": "335",
+                    "subject": "Making a false document"
+                },
+                {
+                    "ipc": "465",
+                    "bns": "336(2)",
+                    "subject": "Punishment for forgery"
+                },
+                {
+                    "ipc": "466",
+                    "bns": "337",
+                    "subject": "Forgery of record of Court or of public register, etc."
+                },
+                {
+                    "ipc": "467",
+                    "bns": "338",
+                    "subject": "Forgery of valuable security, will, etc."
+                },
+                {
+                    "ipc": "468",
+                    "bns": "336(3)",
+                    "subject": "Forgery for purpose of cheating"
+                },
+                {
+                    "ipc": "469",
+                    "bns": "336(4)",
+                    "subject": "Forgery for purpose of harming reputation"
+                },
+                {
+                    "ipc": "470",
+                    "bns": "340(1)",
+                    "subject": "Forged document or electronic record"
+                },
+                {
+                    "ipc": "471",
+                    "bns": "340(2)",
+                    "subject": "Using as genuine a forged document or electronic record"
+                }
+            ]
+        },
+        {
+            "category_hindi": "मिथ्या साक्ष्य संबंधी अपराध",
+            "category_english": "False Evidence-Related Offences",
+            "description": "Covers giving or intentionally fabricating false evidence and threatening witnesses",
+            "mappings": [
+                {
+                    "ipc": "194",
+                    "bns": "229",
+                    "subject": "Giving or fabricating false evidence with intent to procure conviction of capital offence"
+                },
+                {
+                    "ipc": "195",
+                    "bns": "230",
+                    "subject": "Giving or fabricating false evidence with intent to procure conviction of offence punishable with imprisonment for life or imprisonment"
+                },
+                {
+                    "ipc": "196",
+                    "bns": "231",
+                    "subject": "Using evidence known to be false"
+                },
+                {
+                    "ipc": "195A",
+                    "bns": "232",
+                    "subject": "Threatening any person to give false evidence"
+                }
+            ]
+        },
+        {
+            "category_hindi": "नवीन धाराएं/उपधाराएं",
+            "category_english": "New Sections/Sub-sections Introduced in BNS",
+            "description": "Entirely new offences or definitions introduced in BNS that have no direct IPC equivalent",
+            "mappings": [
+                {
+                    "ipc": "New",
+                    "bns": "2(3)",
+                    "subject": "Definition of Child (Balak/Balika)"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "48",
+                    "subject": "Abetment outside India for offences in India"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "69",
+                    "subject": "Sexual intercourse by employing deceitful means, etc."
+                },
+                {
+                    "ipc": "New",
+                    "bns": "73",
+                    "subject": "Publication of court proceedings without permission"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "86",
+                    "subject": "Cruelty (New definition)"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "95",
+                    "subject": "Hiring, employing or engaging a child to commit an offence"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "103(2)",
+                    "subject": "Mob Lynching (Death punishment)"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "117(4)",
+                    "subject": "Mob Lynching (Grievous hurt punishment)"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "117(3)",
+                    "subject": "Grievous hurt causing permanent disability or persistent vegetative state"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "111",
+                    "subject": "Organized Crime"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "112",
+                    "subject": "Petty Organized Crime"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "113",
+                    "subject": "Terrorist Act"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "152",
+                    "subject": "Acts endangering sovereignty, unity and integrity of India"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "197(1)(d)",
+                    "subject": "Publication of false information endangering sovereignty, unity, integrity or security"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "226",
+                    "subject": "Attempt to commit suicide with intent to restrain public servant from discharging duty"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "304",
+                    "subject": "Snatching"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "305(b)",
+                    "subject": "Theft of vehicle used for transport of goods or passengers"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "305(c)",
+                    "subject": "Theft of property from vehicle/transport"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "305(d)",
+                    "subject": "Theft of idol or icon from place of worship"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "305(e)",
+                    "subject": "Theft of government or local authority property"
+                },
+                {
+                    "ipc": "New",
+                    "bns": "324(3)",
+                    "subject": "Mischief causing damage to government/local authority property"
+                }
+            ]
+        },
+        {
+            "category_hindi": "हटाई गई धाराएं",
+            "category_english": "Removed/Omitted Sections",
+            "description": "IPC sections that have been omitted, decriminalized, or substantially replaced without a direct BNS equivalent in this context",
+            "mappings": [
+                {
+                    "ipc": "124A",
+                    "bns": "Omitted/Replaced",
+                    "subject": "Sedition (Rajdroh)"
+                },
+                {
+                    "ipc": "309",
+                    "bns": "Omitted",
+                    "subject": "Attempt to commit suicide"
+                },
+                {
+                    "ipc": "377",
+                    "bns": "Omitted",
+                    "subject": "Unnatural offences"
+                },
+                {
+                    "ipc": "310",
+                    "bns": "Omitted",
+                    "subject": "Thug"
+                },
+                {
+                    "ipc": "311",
+                    "bns": "Omitted",
+                    "subject": "Punishment for thug"
+                },
+                {
+                    "ipc": "497",
+                    "bns": "Omitted",
+                    "subject": "Adultery"
+                }
+            ]
+        }
+    ]
+}

@@ -1,5 +1,7 @@
 import { useNavigate, Link } from 'react-router-dom'
+import { useState } from 'react'
 import { FaFileUpload, FaBalanceScale, FaArrowRight, FaHistory, FaGavel, FaExternalLinkAlt, FaLandmark, FaBriefcase, FaHome, FaChartLine } from 'react-icons/fa'
+import lawData from '../data/ipc_bns_categorized_mapping.json'
 
 const landmarkCases = [
     {
@@ -189,6 +191,7 @@ const topGenres = [
 
 export default function Home() {
     const navigate = useNavigate();
+    const [activeDropdown, setActiveDropdown] = useState(null);
 
     return (
         <div className="min-h-screen bg-neutral-950 text-white font-sans selection:bg-white selection:text-black overflow-hidden relative">
@@ -337,6 +340,73 @@ export default function Home() {
                                                 </button>
                                             ))}
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Know Your Law Section */}
+                <div className="w-full max-w-6xl mb-32 relative z-10">
+                    <div className="flex items-center gap-4 mb-8 justify-center">
+                        <div className="h-px bg-white/10 w-12"></div>
+                        <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-emerald-400 flex items-center gap-2 uppercase tracking-widest">
+                            Know Your Law (IPC vs BNS)
+                        </h2>
+                        <div className="h-px bg-white/10 w-12"></div>
+                    </div>
+
+                    <p className="text-center text-neutral-400 mb-8 max-w-2xl mx-auto text-sm">
+                        Explore the transition from the Indian Penal Code (IPC) to the Bharatiya Nyaya Sanhita (BNS).
+                        Select a category to see the mapping sections. Hover to see the subject.
+                    </p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {lawData.categories.map((cat, idx) => (
+                            <div key={idx} className="relative group">
+                                <div className="glass-card rounded-xl border border-white/5 overflow-hidden transition-all duration-300 hover:bg-white/5">
+                                    <button
+                                        className="w-full text-left p-4 flex items-center justify-between outline-none"
+                                        onClick={() => setActiveDropdown(activeDropdown === idx ? null : idx)}
+                                    >
+                                        <div className="flex flex-col">
+                                            <span className="text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1">Category {idx + 1}</span>
+                                            <h3 className="text-white font-semibold text-sm leading-snug">{cat.category_english}</h3>
+                                        </div>
+                                        <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                                            <span className="text-emerald-400 text-lg">↓</span>
+                                        </div>
+                                    </button>
+
+                                    {/* Dropdown Content */}
+                                    <div className={`${activeDropdown === idx ? 'block' : 'hidden'} border-t border-white/5 bg-black/20 backdrop-blur-md max-h-60 overflow-y-auto custom-scrollbar`}>
+                                        {cat.mappings.map((mapping, mIdx) => (
+                                            <div
+                                                key={mIdx}
+                                                className="group/item relative p-3 border-b border-white/5 last:border-0 hover:bg-white/5 cursor-pointer transition-colors"
+                                                onClick={() => navigate('/chat', { state: { query: `Explain the transition from IPC Section ${mapping.ipc} to BNS Section ${mapping.bns}. Subject: ${mapping.subject}` } })}
+                                            >
+                                                <div className="flex justify-between items-center mb-1">
+                                                    <div className="flex gap-2 text-xs font-mono">
+                                                        <span className="text-neutral-500">IPC <span className="text-neutral-300">{mapping.ipc}</span></span>
+                                                        <span className="text-neutral-600">→</span>
+                                                        <span className="text-emerald-400 font-bold">BNS {mapping.bns}</span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Hover Subject (Tooltip-ish or overlay) */}
+                                                <div className="text-neutral-400 text-xs line-clamp-1 group-hover/item:text-white transition-colors">
+                                                    {mapping.subject}
+                                                </div>
+
+                                                {/* Full Subject Tooltip on Hover */}
+                                                <div className="absolute left-0 bottom-full mb-2 w-full p-2 bg-neutral-900 border border-white/10 rounded-lg text-xs text-white shadow-xl opacity-0 translate-y-2 group-hover/item:opacity-100 group-hover/item:translate-y-0 transition-all pointer-events-none z-20">
+                                                    {mapping.subject}
+                                                    <div className="absolute bottom-[-4px] left-4 w-2 h-2 bg-neutral-900 border-r border-b border-white/10 transform rotate-45"></div>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             </div>
