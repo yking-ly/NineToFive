@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+
+
 import { FaUserAstronaut, FaPaperPlane, FaArrowLeft, FaComments, FaRobot, FaUser } from 'react-icons/fa';
 import { HiSparkles, HiBars3, HiXMark } from "react-icons/hi2";
 import ReactMarkdown from 'react-markdown';
@@ -14,15 +16,23 @@ import SessionSidebar from '../components/SessionSidebar';
 import UserProfile from '../components/UserProfile';
 
 export default function Chat() {
+    const navigate = useNavigate();
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
     const [isProcessing, setIsProcessing] = useState(false);
     const [selectedTag, setSelectedTag] = useState(null);
     const [loadingStatus, setLoadingStatus] = useState(null);
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     const messagesEndRef = useRef(null);
     const socketRef = useRef(null);
+
+    // Initial check for mobile
+    useEffect(() => {
+        if (window.innerWidth < 768) {
+            setIsSidebarOpen(false);
+        }
+    }, []);
 
     // Contexts
     const { t, language, changeLanguage, isLoading: isLangLoading } = useLanguage();
@@ -188,16 +198,8 @@ export default function Chat() {
         <SkeletonTheme baseColor="#1a1a1a" highlightColor="#2a2a2a">
             <div className="h-screen bg-[#030303] text-white font-sans flex relative overflow-hidden">
 
-                {/* Sidebar (Desktop: Persistent, Mobile: Drawer) */}
-                <div className="hidden md:block relative z-30">
-                    <SessionSidebar
-                        isOpen={true}
-                        onToggle={() => { }}
-                        persona="default"
-                    />
-                </div>
-                {/* Mobile Sidebar */}
-                <div className="md:hidden relative z-40">
+                {/* Sidebar */}
+                <div className="relative z-30">
                     <SessionSidebar
                         isOpen={isSidebarOpen}
                         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -206,7 +208,7 @@ export default function Chat() {
                 </div>
 
                 {/* Main Content */}
-                <div className="flex-1 flex flex-col relative h-full">
+                <div className={`flex-1 flex flex-col relative h-full transition-all duration-300 ${(isSidebarOpen && user) ? 'md:ml-80' : ''}`}>
 
                     {/* Background elements */}
                     <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
@@ -217,6 +219,14 @@ export default function Chat() {
                     {/* Header */}
                     <header className="relative z-20 px-8 py-5 flex items-center justify-between border-b border-white/5 bg-[#030303]/80 backdrop-blur-xl">
                         <div className="flex items-center gap-4">
+                            <motion.button
+                                whileHover={{ scale: 1.1, x: -3 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => navigate('/dashboard')}
+                                className="hidden md:flex p-2 bg-white/5 hover:bg-white/10 rounded-lg text-neutral-400 hover:text-white transition-all mr-2"
+                            >
+                                <FaArrowLeft />
+                            </motion.button>
                             <button
                                 onClick={() => setIsSidebarOpen(true)}
                                 className="md:hidden p-2 -ml-2 text-white/70 hover:text-white"

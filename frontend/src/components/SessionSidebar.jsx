@@ -27,6 +27,9 @@ const SessionSidebar = ({ isOpen, onToggle, persona = 'default' }) => {
     const { user } = useAuth();
     const navigate = useNavigate();
 
+    // If user is not logged in, do not render sidebar
+    if (!user) return null;
+
     const [searchQuery, setSearchQuery] = useState('');
     const [deletingId, setDeletingId] = useState(null);
 
@@ -85,21 +88,21 @@ const SessionSidebar = ({ isOpen, onToggle, persona = 'default' }) => {
 
     return (
         <>
-            {/* Toggle Button (Mobile) */}
+            {/* Toggle Button */}
             <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={onToggle}
-                className="fixed top-20 left-4 z-40 md:hidden glass p-2 rounded-lg shadow-lg"
+                className={`fixed top-24 left-4 z-50 glass p-2 rounded-lg shadow-lg ${isOpen ? 'hidden' : 'block'}`}
             >
-                {isOpen ? <HiXMark className="text-xl text-white" /> : <HiChevronRight className="text-xl text-white" />}
+                <HiChevronRight className="text-xl text-white" />
             </motion.button>
 
             {/* Sidebar */}
             <AnimatePresence>
                 {isOpen && (
                     <>
-                        {/* Overlay (Mobile) */}
+                        {/* Overlay (Mobile Only) */}
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -125,7 +128,7 @@ const SessionSidebar = ({ isOpen, onToggle, persona = 'default' }) => {
                                     </h2>
                                     <button
                                         onClick={onToggle}
-                                        className="md:hidden glass p-2 rounded-lg hover:bg-white/10 transition-colors"
+                                        className="glass p-2 rounded-lg hover:bg-white/10 transition-colors"
                                     >
                                         <HiChevronLeft className="text-white" />
                                     </button>
@@ -189,8 +192,8 @@ const SessionSidebar = ({ isOpen, onToggle, persona = 'default' }) => {
                                                     if (window.innerWidth < 768) onToggle();
                                                 }}
                                                 className={`group relative p-3 rounded-lg cursor-pointer transition-all ${currentSession?.id === session.id
-                                                        ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/50'
-                                                        : 'bg-white/5 hover:bg-white/10 border border-transparent'
+                                                    ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/50'
+                                                    : 'bg-white/5 hover:bg-white/10 border border-transparent'
                                                     }`}
                                             >
                                                 <div className="flex items-start justify-between gap-2">
@@ -208,8 +211,8 @@ const SessionSidebar = ({ isOpen, onToggle, persona = 'default' }) => {
                                                         whileTap={{ scale: 0.9 }}
                                                         onClick={(e) => handleDeleteSession(session.id, e)}
                                                         className={`opacity-0 group-hover:opacity-100 p-1.5 rounded-lg transition-all ${deletingId === session.id
-                                                                ? 'bg-red-500 text-white'
-                                                                : 'bg-white/10 text-gray-400 hover:text-red-400'
+                                                            ? 'bg-red-500 text-white'
+                                                            : 'bg-white/10 text-gray-400 hover:text-red-400'
                                                             }`}
                                                     >
                                                         <HiTrash className="text-sm" />

@@ -6,6 +6,7 @@ import { useState, useRef } from 'react';
 import { motion, useScroll, useTransform, useSpring, useMotionValue, useMotionTemplate } from 'framer-motion';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
+import Dashboard from './Dashboard';
 
 function FeatureCard({ feature, index }) {
     const cardRef = useRef(null);
@@ -144,6 +145,12 @@ export default function Home() {
         }
     ];
 
+    // Show Dashboard for logged-in users
+    if (user) {
+        return <Dashboard />;
+    }
+
+    // Show Landing Page for guests
     return (
         <motion.div
             ref={containerRef}

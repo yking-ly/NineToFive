@@ -46,6 +46,26 @@ def get_data():
     }
     return jsonify(data)
 
+@app.route('/api/uploads')
+def get_uploads():
+    if not os.path.exists(DB_FILE):
+        return jsonify([])
+    try:
+        with open(DB_FILE, 'r') as f:
+            content = f.read()
+            if not content.strip():
+                return jsonify([])
+            data = json.loads(content)
+        # Sort by timestamp descending if available, else usage
+        # Assuming simple list for now
+        return jsonify(data)
+    except json.JSONDecodeError:
+        print("[WARNING] DB_FILE corrupted or empty, returning empty list")
+        return jsonify([])
+    except Exception as e:
+        print(f"[ERROR] Failed to read uploads db: {e}")
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/guide')
 def get_guide():
     lang = request.args.get('lang', 'en')

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { FaMicrophone, FaHistory, FaTimes, FaFileAlt, FaBriefcase, FaBalanceScale, FaUserAstronaut } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
+import { FaMicrophone, FaHistory, FaTimes, FaFileAlt, FaBriefcase, FaBalanceScale, FaUserAstronaut, FaArrowLeft } from 'react-icons/fa';
 import { HiBars3 } from "react-icons/hi2";
 import { io } from 'socket.io-client';
 import { useLanguage } from '../context/LanguageContext';
@@ -11,6 +11,7 @@ import SessionSidebar from '../components/SessionSidebar';
 import UserProfile from '../components/UserProfile';
 
 export default function Kira() {
+    const navigate = useNavigate();
     // Session State
     const [isActive, setIsActive] = useState(false);
     const [status, setStatus] = useState('idle'); // idle, listening, processing, speaking
@@ -308,18 +309,22 @@ export default function Kira() {
         });
     };
 
+    // Initial check for mobile
+    useEffect(() => {
+        if (window.innerWidth < 768) {
+            setIsSidebarOpen(false);
+        } else {
+            setIsSidebarOpen(true);
+        }
+    }, []);
+
+    // ... (rest of useEffects)
+
     return (
         <div className="h-screen bg-neutral-900 text-neutral-100 font-sans flex flex-col md:flex-row overflow-hidden selection:bg-indigo-500/30">
 
-            {/* Sidebar (Desktop: Persistent, Mobile: Drawer) */}
-            <div className="hidden md:block relative z-20">
-                <SessionSidebar
-                    isOpen={true}
-                    onToggle={() => { }}
-                    persona="kira"
-                />
-            </div>
-            <div className="md:hidden relative z-40">
+            {/* Sidebar */}
+            <div className="relative z-20">
                 <SessionSidebar
                     isOpen={isSidebarOpen}
                     onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -327,7 +332,7 @@ export default function Kira() {
                 />
             </div>
 
-            <div className="flex-1 flex flex-col relative h-full">
+            <div className={`flex-1 flex flex-col relative h-full transition-all duration-300 ${isSidebarOpen ? 'md:ml-80' : ''}`}>
                 {/* Elegant Background */}
                 <div className="absolute inset-0 bg-neutral-900 z-0">
                     <div className="absolute top-0 right-0 w-1/2 h-full bg-neutral-800/10 skew-x-12 transform origin-top"></div>
@@ -337,6 +342,14 @@ export default function Kira() {
                 {/* Header */}
                 <header className="relative z-50 px-8 py-6 flex justify-between items-center border-b border-white/5 bg-neutral-900/50 backdrop-blur-sm">
                     <div className="flex items-center gap-4">
+                        <motion.button
+                            whileHover={{ scale: 1.1, x: -3 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => navigate('/dashboard')}
+                            className="hidden md:flex p-2 bg-white/5 hover:bg-white/10 rounded-lg text-neutral-400 hover:text-white transition-all mr-2"
+                        >
+                            <FaArrowLeft />
+                        </motion.button>
                         <button
                             onClick={() => setIsSidebarOpen(true)}
                             className="md:hidden p-2 -ml-2 text-white/70 hover:text-white"

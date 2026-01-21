@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import TopBar from '../components/TopBar';
 import { FaArrowLeft, FaGavel, FaShieldAlt, FaUserShield, FaCar, FaHome } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -40,20 +41,9 @@ export default function KYL() {
             </div>
 
             {/* Header */}
-            <header className="relative z-10 px-8 py-6 border-b border-white/5 bg-[#030303]/80 backdrop-blur-xl">
-                <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Link to="/" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors border border-white/5">
-                            <FaArrowLeft className="text-neutral-400" />
-                        </Link>
-                        <div>
-                            <h1 className="text-2xl font-bold">Know Your Law</h1>
-                            <p className="text-sm text-neutral-400">Understanding legal provisions that affect you</p>
-                        </div>
-                    </div>
-                    <FaGavel className="w-12 h-12 text-purple-400 opacity-50" />
-                </div>
-            </header>
+            <TopBar title="Know Your Law" subtitle="Understanding legal provisions that affect you">
+                <FaGavel className="w-8 h-8 text-purple-400 opacity-50" />
+            </TopBar>
 
             {/* Main Content */}
             <main className="relative z-10 max-w-7xl mx-auto px-8 py-12">
@@ -74,8 +64,8 @@ export default function KYL() {
                                         setSelectedItem(null);
                                     }}
                                     className={`w-full p-4 rounded-xl text-left transition-all flex items-center gap-3 ${selectedCategory === cat.id
-                                            ? 'bg-white text-black shadow-lg'
-                                            : 'bg-neutral-900/50 border border-white/10 hover:border-white/20 text-neutral-300'
+                                        ? 'bg-white text-black shadow-lg'
+                                        : 'bg-neutral-900/50 border border-white/10 hover:border-white/20 text-neutral-300'
                                         }`}
                                 >
                                     <cat.icon className="w-5 h-5" />

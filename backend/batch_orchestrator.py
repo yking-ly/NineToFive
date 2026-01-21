@@ -66,23 +66,23 @@ def upload_to_drive(file_path: str) -> Dict[str, Any]:
         }
         
         # Upload to Google Drive
-        print(f"  → Uploading to Drive...")
+        print(f"  -> Uploading to Drive...")
         response = requests.post(UPLOAD_URL, json=payload, timeout=120)
         
         if response.status_code == 200:
             result = response.json()
-            print(f"  ✓ Drive upload successful")
+            print(f"  [OK] Drive upload successful")
             return {
                 "driveUrl": result.get('driveUrl'),
                 "thumbnail": result.get('lh3Thumbnail'),
                 "filename": filename
             }
         else:
-            print(f"  ✗ Drive upload failed: {response.status_code}")
+            print(f"  [ERROR] Drive upload failed: {response.status_code}")
             return {"filename": filename}
             
     except Exception as e:
-        print(f"  ✗ Drive upload error: {e}")
+        print(f"  [ERROR] Drive upload error: {e}")
         return {"filename": filename}
 
 
@@ -132,22 +132,22 @@ def process_single_file(file_path: str) -> str:
             chunks = result.get("chunks_created", 0)
             method = result.get("processing_method", "")
             
-            print(f"\n[{filename}] ✅ SUCCESS")
+            print(f"\n[{filename}] [OK] SUCCESS")
             print(f"  Type: {doc_type}")
             print(f"  Chunks: {chunks}")
             print(f"  Method: {method}")
             
-            return f"✓ {filename}: {doc_type} ({chunks} chunks)"
+            return f"[OK] {filename}: {doc_type} ({chunks} chunks)"
         else:
             error = result.get("error", "Unknown error")
-            print(f"\n[{filename}] ✗ FAILED: {error}")
-            return f"✗ {filename}: {error}"
+            print(f"\n[{filename}] [ERROR] FAILED: {error}")
+            return f"[ERROR] {filename}: {error}"
 
     except Exception as e:
-        print(f"\n[{filename}] ✗ EXCEPTION: {str(e)}")
+        print(f"\n[{filename}] [ERROR] EXCEPTION: {str(e)}")
         import traceback
         traceback.print_exc()
-        return f"✗ {filename}: Exception - {str(e)}"
+        return f"[ERROR] {filename}: Exception - {str(e)}"
 
 
 # ============================================================================
@@ -170,10 +170,10 @@ def run_batch_job():
     
     # 1. Scan Directory
     input_path = os.path.abspath(INPUT_DIR)
-    print(f"📁 Scanning directory: {input_path}")
+    print(f" Scanning directory: {input_path}")
     
     if not os.path.exists(input_path):
-        print(f"❌ Error: Directory not found: {input_path}")
+        print(f" [ERROR] Error: Directory not found: {input_path}")
         return
     
     all_files = [
@@ -183,14 +183,14 @@ def run_batch_job():
     ]
     
     if not all_files:
-        print("⚠️  No PDF files found in directory")
+        print("  No PDF files found in directory")
         return
     
-    print(f"✓ Found {len(all_files)} PDF documents\n")
+    print(f" [OK] Found {len(all_files)} PDF documents\n")
     for i, f in enumerate(all_files, 1):
         print(f"  {i}. {os.path.basename(f)}")
     
-    print(f"\n🚀 Starting parallel processing with {MAX_WORKERS} workers...\n")
+    print(f"\n Starting parallel processing with {MAX_WORKERS} workers...\n")
     
     # 2. Parallel Execution
     start_time = time.time()
@@ -205,20 +205,20 @@ def run_batch_job():
     print("\n" + "="*70)
     print("BATCH JOB COMPLETE".center(70))
     print("="*70)
-    print(f"\n⏱️  Total Duration: {duration:.2f} seconds")
-    print(f"📊 Average per file: {duration/len(all_files):.2f} seconds\n")
+    print(f"\n  Total Duration: {duration:.2f} seconds")
+    print(f" Average per file: {duration/len(all_files):.2f} seconds\n")
     
-    print("📋 Results:")
+    print(" Results:")
     for result in results:
         print(f"  {result}")
     
     # Count successes
-    successes = sum(1 for r in results if r.startswith("✓"))
+    successes = sum(1 for r in results if r.startswith("[OK]"))
     failures = len(results) - successes
     
-    print(f"\n✅ Successful: {successes}/{len(results)}")
+    print(f"\n [OK] Successful: {successes}/{len(results)}")
     if failures > 0:
-        print(f"❌ Failed: {failures}/{len(results)}")
+        print(f" [ERROR] Failed: {failures}/{len(results)}")
     
     print("\n" + "="*70 + "\n")
 
@@ -231,10 +231,10 @@ if __name__ == "__main__":
     try:
         run_batch_job()
     except KeyboardInterrupt:
-        print("\n\n⚠️  Batch job interrupted by user")
+        print("\n\n  Batch job interrupted by user")
         sys.exit(1)
     except Exception as e:
-        print(f"\n\n❌ Fatal error: {e}")
+        print(f"\n\n [ERROR] Fatal error: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

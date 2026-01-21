@@ -139,7 +139,8 @@ export const SessionProvider = ({ children }) => {
                 // Delete chats
                 const chatsQuery = query(
                     collection(db, 'chats'),
-                    where('sessionId', '==', sessionId)
+                    where('sessionId', '==', sessionId),
+                    where('userId', '==', user.uid)
                 );
                 const chatsSnapshot = await getDocs(chatsQuery);
                 await Promise.all(chatsSnapshot.docs.map(doc => deleteDoc(doc.ref)));
@@ -209,6 +210,7 @@ export const SessionProvider = ({ children }) => {
                 const chatsQuery = query(
                     collection(db, 'chats'),
                     where('sessionId', '==', sessionId),
+                    where('userId', '==', user.uid),
                     orderBy('timestamp', 'asc')
                 );
 

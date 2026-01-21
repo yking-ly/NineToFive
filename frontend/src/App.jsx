@@ -15,6 +15,7 @@ import { SessionProvider } from './context/SessionContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import KYC from './pages/KYC';
 import KYL from './pages/KYL';
+import Dashboard from './pages/Dashboard';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -24,6 +25,7 @@ function AnimatedRoutes() {
       <Routes location={location} key={location.pathname}>
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Home />} />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/how-to-use" element={<HowToUse />} />
         <Route path="/upload" element={<Upload />} />
         <Route path="/chat" element={<Chat />} />

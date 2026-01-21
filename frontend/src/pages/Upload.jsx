@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import TopBar from '../components/TopBar';
 import { FaCloudUploadAlt, FaFileAlt, FaArrowLeft, FaCheckCircle, FaExclamationCircle, FaSpinner, FaEye, FaAlignLeft, FaShieldAlt } from 'react-icons/fa';
 import { getApiUrl } from '../utils/apiConfig';
 import { useLanguage } from '../context/LanguageContext';
@@ -180,52 +181,48 @@ export default function Upload() {
                 <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }}></div>
             </div>
 
+
+
             {/* Navbar */}
-            <nav className="relative z-20 px-8 py-6 flex justify-between items-center bg-transparent">
-                <Link to="/" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors border border-white/5 hover:border-white/20 group">
-                    <FaArrowLeft className="text-neutral-400 group-hover:text-white transition-colors" />
-                </Link>
-
-                <div className="flex items-center gap-4">
-                    <div className="bg-neutral-900/50 p-1 rounded-xl border border-white/5 flex gap-1 backdrop-blur-md">
-                        {['en', 'hi'].map((langKey) => (
-                            <button
-                                key={langKey}
-                                onClick={() => changeLanguage(langKey)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${language === langKey
-                                    ? 'bg-white text-black shadow-sm'
-                                    : 'text-neutral-500 hover:text-white hover:bg-white/5'
-                                    }`}
-                            >
-                                {langKey === 'en' ? 'EN' : 'हिंदी'}
-                            </button>
-                        ))}
-                    </div>
-
-                    {viewMode && (
-                        <motion.button
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            onClick={() => {
-                                setViewMode(false);
-                                setStatus(null);
-                                setUploadedData(null);
-                                setStreamingSummary('');
-                                setSummaryComplete(false);
-                                setGeneratingSummary(false);
-                                setSummaryLanguage('en');
-                                setTranslatedSummary('');
-                                setIsTranslating(false);
-                                setReferences([]);
-                                setSearchStatus(null);
-                            }}
-                            className="bg-white text-black px-5 py-2 rounded-xl text-sm font-bold shadow-lg hover:bg-neutral-200 transition-colors"
+            <TopBar title="Document Analysis" subtitle="Upload & Analyze Legal Documents" transparent={true}>
+                <div className="bg-neutral-900/50 p-1 rounded-xl border border-white/5 flex gap-1 backdrop-blur-md">
+                    {['en', 'hi'].map((langKey) => (
+                        <button
+                            key={langKey}
+                            onClick={() => changeLanguage(langKey)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${language === langKey
+                                ? 'bg-white text-black shadow-sm'
+                                : 'text-neutral-500 hover:text-white hover:bg-white/5'
+                                }`}
                         >
-                            {t.uploadNew}
-                        </motion.button>
-                    )}
+                            {langKey === 'en' ? 'EN' : 'हिंदी'}
+                        </button>
+                    ))}
                 </div>
-            </nav>
+
+                {viewMode && (
+                    <motion.button
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        onClick={() => {
+                            setViewMode(false);
+                            setStatus(null);
+                            setUploadedData(null);
+                            setStreamingSummary('');
+                            setSummaryComplete(false);
+                            setGeneratingSummary(false);
+                            setSummaryLanguage('en');
+                            setTranslatedSummary('');
+                            setIsTranslating(false);
+                            setReferences([]);
+                            setSearchStatus(null);
+                        }}
+                        className="bg-white text-black px-5 py-2 rounded-xl text-sm font-bold shadow-lg hover:bg-neutral-200 transition-colors"
+                    >
+                        {t.uploadNew}
+                    </motion.button>
+                )}
+            </TopBar>
 
             <div className={`relative z-10 container mx-auto px-6 lg:px-12 flex flex-col ${viewMode ? 'h-[calc(100vh-100px)] pb-6' : 'h-full justify-center items-center'}`}>
 
