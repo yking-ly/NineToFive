@@ -58,9 +58,20 @@ body {
   background-clip: text;
 }
 
+
 .text-gradient-gold {
   background: linear-gradient(135deg, #ffd700 0%, #e6ac00 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Hide scrollbar utility */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

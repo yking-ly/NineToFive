@@ -1,22 +1,97 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaCloudUploadAlt, FaFileAlt, FaArrowLeft, FaCheckCircle, FaExclamationCircle, FaSpinner, FaEye, FaAlignLeft, FaShieldAlt } from 'react-icons/fa';
 import { getApiUrl } from '../utils/apiConfig';
 import { useLanguage } from '../context/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import ReactMarkdown from 'react-markdown';
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
+import io from 'socket.io-client';
 
 export default function Upload() {
     const [uploading, setUploading] = useState(false);
     const [status, setStatus] = useState(null); // 'success' | 'error' | null
     const [message, setMessage] = useState('');
     const [uploadedData, setUploadedData] = useState(null);
-    const [viewMode, setViewMode] = useState(false); // New state to toggle full view
+    const [viewMode, setViewMode] = useState(false); // Toggle full view
+    const [streamingSummary, setStreamingSummary] = useState(''); // Streaming summary text
+    const [summaryComplete, setSummaryComplete] = useState(false); // Summary generation complete
+    const [generatingSummary, setGeneratingSummary] = useState(false); // Summary loading state
+    const [summaryLanguage, setSummaryLanguage] = useState('en'); // 'en' or 'hi' for summary
+    const [translatedSummary, setTranslatedSummary] = useState(''); // Hindi translated summary
+    const [isTranslating, setIsTranslating] = useState(false); // Translation in progress
+    const [references, setReferences] = useState([]); // References used to draft the summary
+    const [searchStatus, setSearchStatus] = useState(null); // Real-time processing status
     const fileInputRef = useRef(null);
+    const socketRef = useRef(null);
 
-    // Global Language Context
+    // Global  Language Context
     const { t, language, changeLanguage } = useLanguage();
 
     const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB
+
+    // Socket connection setup
+    useEffect(() => {
+        const baseUrl = getApiUrl();
+        socketRef.current = io(baseUrl, {
+            transports: ['polling'],
+            reconnection: true
+        });
+
+        // Listen for realtime status
+        socketRef.current.on('search_status', (data) => {
+            setSearchStatus(data.message);
+        });
+
+        // Listen for summary chunks
+        socketRef.current.on('summary_chunk', (data) => {
+            setStreamingSummary((prev) => prev + data.chunk);
+        });
+
+        // Summary generation complete
+        socketRef.current.on('summary_complete', (data) => {
+            setSummaryComplete(true);
+            setGeneratingSummary(false);
+            setSearchStatus(null);
+            if (data.summary_hi) {
+                setTranslatedSummary(data.summary_hi);
+            }
+            if (data.references) {
+                setReferences(data.references);
+            }
+        });
+
+        // Translation status updates
+        socketRef.current.on('translation_status', (data) => {
+            if (data.status === 'translating') {
+                setIsTranslating(true);
+            } else if (data.status === 'failed') {
+                setIsTranslating(false);
+                console.error('Translation failed:', data.error);
+            }
+        });
+
+        socketRef.current.on('translation_complete', (data) => {
+            setTranslatedSummary(data.translated);
+            setIsTranslating(false);
+        });
+
+        // Handle errors
+        socketRef.current.on('summary_error', (data) => {
+            console.error('Summary generation error:', data.error);
+            setStreamingSummary('Failed to generate summary. ' + data.error);
+            setSummaryComplete(true);
+            setGeneratingSummary(false);
+            setSearchStatus(null);
+        });
+
+        return () => {
+            if (socketRef.current) {
+                socketRef.current.disconnect();
+            }
+        };
+    }, []);
 
     const handleFileSelect = (e) => {
         const file = e.target.files[0];
@@ -63,10 +138,21 @@ export default function Upload() {
                 setMessage('File uploaded successfully!');
                 setUploadedData(data.data);
 
-                // Delay switching to view mode slightly for effect
+                // Immediately switch to view mode
+                setViewMode(true);
+                setGeneratingSummary(true);
+                setStreamingSummary('');
+                setSummaryComplete(false);
+                setSearchStatus("Initializing...");
+
+                // Trigger streaming summary generation via WebSocket
                 setTimeout(() => {
-                    setViewMode(true);
-                }, 1000);
+                    socketRef.current.emit('generate_summary', {
+                        filename: data.data.filename,
+                        temp_path: data.temp_path,
+                        language: summaryLanguage  // Send selected language
+                    });
+                }, 500);
             } else {
                 throw new Error(data.error || 'Upload failed');
             }
@@ -120,7 +206,19 @@ export default function Upload() {
                         <motion.button
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            onClick={() => { setViewMode(false); setStatus(null); setUploadedData(null); }}
+                            onClick={() => {
+                                setViewMode(false);
+                                setStatus(null);
+                                setUploadedData(null);
+                                setStreamingSummary('');
+                                setSummaryComplete(false);
+                                setGeneratingSummary(false);
+                                setSummaryLanguage('en');
+                                setTranslatedSummary('');
+                                setIsTranslating(false);
+                                setReferences([]);
+                                setSearchStatus(null);
+                            }}
                             className="bg-white text-black px-5 py-2 rounded-xl text-sm font-bold shadow-lg hover:bg-neutral-200 transition-colors"
                         >
                             {t.uploadNew}
@@ -280,34 +378,114 @@ export default function Upload() {
                                 transition={{ duration: 0.6, delay: 0.4 }}
                                 className="w-full md:w-[600px] bg-neutral-900/50 backdrop-blur-2xl rounded-[2.5rem] border border-white/10 flex flex-col relative"
                             >
-                                <div className="p-8 border-b border-white/5 flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
-                                        <FaAlignLeft className="text-indigo-400 w-5 h-5" />
-                                    </div>
-                                    <div>
-                                        <h2 className="text-2xl font-black text-white">{t.aiSummary}</h2>
-                                        <p className="text-xs text-neutral-500 uppercase tracking-widest font-bold">{t.generatedBy}</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-                                    <div className="prose prose-invert prose-lg max-w-none">
-                                        <p className="text-neutral-300 leading-8 text-lg font-light">
-                                            {uploadedData?.summary || "No summary available for this document."}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="p-8 mt-auto border-t border-white/5 bg-white/[0.02]">
-                                    <div className="bg-yellow-500/5 border border-yellow-500/10 rounded-2xl p-5 flex gap-4 items-start">
-                                        <FaExclamationCircle className="text-yellow-500/80 mt-1 flex-shrink-0" />
+                                <div className="p-8 border-b border-white/5 flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                                            <FaAlignLeft className="text-indigo-400 w-5 h-5" />
+                                        </div>
                                         <div>
-                                            <h4 className="text-yellow-500 text-xs font-bold uppercase tracking-wide mb-1">{t.disclaimer}</h4>
-                                            <p className="text-neutral-500 text-xs leading-relaxed font-medium">
-                                                {t.disclaimerText}
+                                            <h2 className="text-2xl font-black text-white">{t.aiSummary}</h2>
+                                            <p className="text-xs text-neutral-500 uppercase tracking-widest font-bold">
+                                                {searchStatus || (generatingSummary ? 'Generating...' : isTranslating ? 'Translating...' : t.generatedBy)}
                                             </p>
                                         </div>
                                     </div>
+
+                                    {/* Language Toggle for Summary */}
+                                    {summaryComplete && !generatingSummary && (
+                                        <div className="bg-neutral-800/50 p-1 rounded-xl border border-white/5 flex gap-1">
+                                            <button
+                                                onClick={() => setSummaryLanguage('en')}
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${summaryLanguage === 'en'
+                                                    ? 'bg-white text-black shadow-sm'
+                                                    : 'text-neutral-500 hover:text-white hover:bg-white/5'
+                                                    }`}
+                                            >
+                                                EN
+                                            </button>
+                                            <button
+                                                onClick={() => setSummaryLanguage('hi')}
+                                                disabled={!translatedSummary && !isTranslating}
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${summaryLanguage === 'hi'
+                                                    ? 'bg-white text-black shadow-sm'
+                                                    : translatedSummary || isTranslating
+                                                        ? 'text-neutral-500 hover:text-white hover:bg-white/5'
+                                                        : 'text-neutral-700 cursor-not-allowed'
+                                                    }`}
+                                            >
+                                                हिं
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                                    {generatingSummary && !summaryComplete ? (
+                                        /* Skeleton Loading */
+                                        <div className="space-y-4">
+                                            <Skeleton
+                                                count={8}
+                                                height={16}
+                                                baseColor="#1f1f1f"
+                                                highlightColor="#2a2a2a"
+                                                borderRadius="0.5rem"
+                                            />
+                                        </div>
+                                    ) : (
+                                        /* Summary Content with Markdown */
+                                        <div className="prose prose-invert prose-sm max-w-none">
+                                            <ReactMarkdown
+                                                components={{
+                                                    h1: ({ node, ...props }) => <h1 className="text-2xl font-black text-white mb-4 mt-6 first:mt-0 tracking-tight" {...props} />,
+                                                    h2: ({ node, ...props }) => <h2 className="text-lg font-bold text-white mb-3 mt-6 pb-2 border-b border-white/10 flex items-center gap-2" {...props} />,
+                                                    h3: ({ node, ...props }) => <h3 className="text-base font-bold text-indigo-300 mb-2 mt-4" {...props} />,
+                                                    h4: ({ node, ...props }) => <h4 className="text-sm font-bold text-neutral-200 mb-1 mt-3" {...props} />,
+                                                    p: ({ node, ...props }) => <p className="mb-4 text-sm leading-7 text-neutral-300/90 font-medium" {...props} />,
+                                                    ul: ({ node, ...props }) => <ul className="mb-4 pl-4 space-y-2" {...props} />,
+                                                    ol: ({ node, ...props }) => <ol className="list-decimal list-inside mb-4 pl-2 space-y-2 text-sm text-neutral-300" {...props} />,
+                                                    li: ({ node, ...props }) => (
+                                                        <li className="text-sm leading-relaxed text-neutral-300 pl-2 relative before:content-['•'] before:absolute before:left-[-1rem] before:text-indigo-500 before:font-bold" {...props}>
+                                                            <span className="relative -left-2">{props.children}</span>
+                                                        </li>
+                                                    ),
+                                                    strong: ({ node, ...props }) => <strong className="font-bold text-white bg-indigo-500/10 px-1 rounded" {...props} />,
+                                                    em: ({ node, ...props }) => <em className="italic text-indigo-300/80" {...props} />,
+                                                    code: ({ node, inline, ...props }) =>
+                                                        inline ?
+                                                            <code className="bg-neutral-800 border border-white/10 px-1.5 py-0.5 rounded text-xs text-indigo-300 font-mono tracking-tight" {...props} /> :
+                                                            <code className="block bg-neutral-900/50 border border-white/5 p-4 rounded-xl text-xs text-neutral-400 font-mono overflow-x-auto my-4 shadow-inner" {...props} />,
+                                                    blockquote: ({ node, ...props }) => <blockquote className="border-l-4 border-indigo-500 bg-indigo-500/5 p-4 rounded-r-xl italic text-neutral-400 text-sm my-4" {...props} />
+                                                }}
+                                            >
+                                                {summaryLanguage === 'hi' && translatedSummary
+                                                    ? translatedSummary
+                                                    : streamingSummary || uploadedData?.summary || "No summary available for this document."}
+                                            </ReactMarkdown>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="p-6 border-t border-white/5 bg-neutral-900/30 backdrop-blur-md">
+                                    {references.length > 0 && (
+                                        <div>
+                                            <p className="text-indigo-400 text-[10px] font-black uppercase tracking-widest mb-3 flex items-center gap-2">
+                                                <FaShieldAlt className="w-3 h-3" /> References Used
+                                            </p>
+                                            <div className="flex overflow-x-auto gap-3 pb-2 scrollbar-none snap-x">
+                                                {references.map((ref, index) => (
+                                                    <span
+                                                        key={index}
+                                                        className="flex-shrink-0 snap-start whitespace-nowrap inline-flex items-center px-4 py-2.5 rounded-xl bg-neutral-800/50 border border-white/5 text-xs font-semibold text-neutral-300 hover:bg-neutral-800 hover:border-indigo-500/50 hover:text-white transition-all hover:shadow-[0_0_15px_rgba(99,102,241,0.15)] cursor-default select-none group"
+                                                    >
+                                                        <div className="w-6 h-6 rounded-lg bg-indigo-500/10 flex items-center justify-center mr-3 group-hover:bg-indigo-500/20 transition-colors">
+                                                            <FaFileAlt className="text-indigo-400 group-hover:text-indigo-300" size={10} />
+                                                        </div>
+                                                        {ref}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </motion.div>
                         </motion.div>

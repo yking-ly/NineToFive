@@ -123,15 +123,13 @@ def get_llm():
     global _llm
     if _llm is None:
         print("Loading LLM...")
-        callbacks = [StreamingStdOutCallbackHandler()]
         _llm = LlamaCpp(
             model_path=LLM_MODEL_PATH,
             n_gpu_layers=-1, 
             n_batch=512,
-            n_ctx=4096, # Restored to 4096 to prevent context overflow crashes
+            n_ctx=16384, # Increased to 16k to handle larger legal chunks + history
             max_tokens=1024, # Maximum tokens to generate for complete responses
             f16_kv=True,
-            callbacks=callbacks,
             verbose=False,
             temperature=0.1,
         )

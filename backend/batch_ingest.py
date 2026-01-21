@@ -19,7 +19,9 @@ db_lock = threading.Lock()
 def process_file(filename):
     file_path = os.path.join(INFO_DIR, filename)
     
+    print(f"\n{'='*70}")
     print(f"[{threading.current_thread().name}] Processing: {filename}")
+    print(f"{'='*70}")
     
     try:
         # 1. Upload to Google Drive
@@ -28,7 +30,7 @@ def process_file(filename):
                 file_content = f.read()
                 encoded_content = base64.b64encode(file_content).decode('utf-8')
         except Exception as e:
-            print(f"Error reading file {filename}: {e}")
+            print(f"❌ Error reading file {filename}: {e}")
             return
 
         # Simple mimetype detection
@@ -45,65 +47,94 @@ def process_file(filename):
         }
         
         # Drive upload - network bound, good for threads
-        print(f"  [{filename}] Uploading to Drive...")
+        print(f"📤 [{filename}] Uploading to Drive...")
         response = requests.post(UPLOAD_URL, json=payload, timeout=60)
         
         if response.status_code != 200:
-            print(f"  [{filename}] FAILED to upload to Drive: {response.text}")
+            print(f"❌ [{filename}] FAILED to upload to Drive: {response.text}")
             return
         
         res_json = response.json()
         drive_url = res_json.get('driveUrl')
         thumbnail = res_json.get('lh3Thumbnail')
-        print(f"  [{filename}] Drive upload successful")
+        print(f"✅ [{filename}] Drive upload successful")
         
-        # 2. Ingest to ChromaDB
-        print(f"  [{filename}] Ingesting to ChromaDB...")
-        chunk_ids = ingest.ingest_document(file_path, filename)
+        # 2. USE MASTER INGESTION PIPELINE
+        print(f"🚀 [{filename}] Starting Master Ingestion...")
+        print(f"-" * 70)
         
-        if not chunk_ids:
-            print(f"  [{filename}] WARNING: No chunks were ingested")
-        else:
-            print(f"  [{filename}] Ingested {len(chunk_ids)} chunks")
+        def status_callback(msg):
+            print(f"   [{filename}] {msg}")
         
-        # 3. Generate Summary
-        print(f"  [{filename}] Generating summary...")
-        summary = ingest.generate_summary(file_path)
+        # Call the smart ingestion
+        result = ingest.smart_ingest_document(
+            file_path=file_path,
+            original_filename=filename,
+            status_callback=status_callback
+        )
+        
+        print(f"-" * 70)
+        
+        if not result.get('success'):
+            print(f"❌ [{filename}] Ingestion FAILED: {result.get('message', 'Unknown error')}")
+            return
+        
+        # Display results
+        doc_type = result.get('doc_type', 'Unknown')
+        chunks_created = result.get('chunks_created', 0)
+        processing_method = result.get('processing_method', 'Unknown')
+        
+        print(f"✅ [{filename}] Ingestion successful!")
+        print(f"   📌 Type: {doc_type}")
+        print(f"   📦 Chunks: {chunks_created}")
+        print(f"   ⚙️  Method: {processing_method}")
+        
+        # Show zones if judgment
+        if doc_type == 'JUDGMENT' and 'zones' in result:
+            print(f"   ⚖️  Zones: {', '.join(result['zones'])}")
 
-        # 4. Update Database - Critical Section
-        new_record = {
-            "filename": filename,
-            "driveUrl": drive_url,
-            "thumbnail": thumbnail,
-            "timestamp": time.time(),
-            "status": "uploaded",
-            "chunk_ids": chunk_ids,
-            "summary": summary
-        }
-
+        # 3. Update Database - Critical Section
+        # Note: Master ingestion already updates uploads_db.json with structured data
+        # But we also need to add Drive URL and thumbnail
+        
         with db_lock:
-            db_data = []
+            # Load the JSON DB updated by master ingestion
             if os.path.exists(DB_FILE):
                 try:
-                    with open(DB_FILE, 'r') as f:
-                        db_data = json.load(f)
+                    with open(DB_FILE, 'r', encoding='utf-8') as f:
+                        content = f.read().strip()
+                        db = json.loads(content) if content else {"documents": {}}
                 except json.JSONDecodeError:
-                    db_data = []
+                    db = {"documents": {}}
+            else:
+                db = {"documents": {}}
             
-            # Check if file already exists in DB, if so, remove old entry
-            db_data = [d for d in db_data if d['filename'] != filename]
+            # Find the document by file_id
+            file_id = result.get('file_id')
             
-            db_data.append(new_record)
-            
-            with open(DB_FILE, 'w') as f:
-                json.dump(db_data, f, indent=4)
+            if file_id and file_id in db.get('documents', {}):
+                # Update existing entry with Drive metadata
+                db['documents'][file_id]['driveUrl'] = drive_url
+                db['documents'][file_id]['thumbnail'] = thumbnail
+                db['documents'][file_id]['lh3Thumbnail'] = thumbnail
+                db['documents'][file_id]['status'] = 'uploaded'
                 
-        print(f"  ✅ [{filename}] Successfully processed and saved")
+                with open(DB_FILE, 'w', encoding='utf-8') as f:
+                    json.dump(db, f, indent=2, ensure_ascii=False)
+                
+                print(f"✅ [{filename}] Database updated with Drive metadata")
+            else:
+                print(f"⚠️  [{filename}] Could not find file_id in database to update Drive URL")
+                
+        print(f"✅✅ [{filename}] Successfully processed and saved")
+        print(f"{'='*70}\n")
 
     except Exception as e:
         import traceback
-        print(f"  ❌ [{filename}] ERROR: {str(e)}")
+        print(f"❌❌ [{filename}] ERROR: {str(e)}")
         traceback.print_exc()
+        print(f"{'='*70}\n")
+
 
 def main():
     if not os.path.exists(INFO_DIR):

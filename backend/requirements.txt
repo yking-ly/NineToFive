@@ -21,4 +21,10 @@ flask-socketio
 gevent
 numpy
 flask-cors
+pytesseract
+pdf2image
+Pillow
+flashrank
+firebase-admin
+python-dotenv
 --index-url https://download.pytorch.org/whl/cu124

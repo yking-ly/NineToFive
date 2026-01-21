@@ -12,6 +12,8 @@
   "dependencies": {
     "@react-spring/web": "^10.0.3",
     "aos": "^2.3.4",
+    "axios": "^1.13.2",
+    "firebase": "^12.8.0",
     "framer-motion": "^12.27.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

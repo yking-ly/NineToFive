@@ -1,6 +1,7 @@
 import { useNavigate, Link } from 'react-router-dom'
-import { FaFileUpload, FaBalanceScale, FaLanguage, FaBrain, FaChevronDown, FaArrowRight, FaMicrophone } from 'react-icons/fa'
+import { FaFileUpload, FaBalanceScale, FaLanguage, FaBrain, FaChevronDown, FaArrowRight, FaMicrophone, FaBook, FaGavel, FaUserCircle } from 'react-icons/fa';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 import { useState, useRef } from 'react';
 import { motion, useScroll, useTransform, useSpring, useMotionValue, useMotionTemplate } from 'framer-motion';
 import Skeleton from 'react-loading-skeleton';
@@ -76,6 +77,7 @@ function FeatureCard({ feature, index }) {
 export default function Home() {
     const navigate = useNavigate();
     const { t, language, changeLanguage, isLoading } = useLanguage();
+    const { user } = useAuth();
     const containerRef = useRef(null);
     const { scrollYProgress } = useScroll({
         target: containerRef,
@@ -106,6 +108,22 @@ export default function Home() {
             description: t.feature2Desc,
             action: () => navigate('/chat'),
             stats: ["IPC/OTC", "BNS", t.sources || "Citations"],
+            tryItNow: t.tryItNow
+        },
+        {
+            icon: FaBook,
+            title: language === 'hi' ? "अपने संविधान को जानें" : "Know Your Constitution",
+            description: language === 'hi' ? "मौलिक अधिकारों और संवैधानिक प्रावधानों के बारे में जानें" : "Learn about fundamental rights and constitutional provisions in simple language",
+            action: () => navigate('/kyc'),
+            stats: language === 'hi' ? ["अधिकार", "कानून", "शिक्षा"] : ["Rights", "Laws", "Education"],
+            tryItNow: t.tryItNow
+        },
+        {
+            icon: FaGavel,
+            title: language === 'hi' ? "अपने कानून को जानें" : "Know Your Law",
+            description: language === 'hi' ? "आपको प्रभावित करने वाले कानूनी प्रावधानों को समझें" : "Understand legal provisions that affect your daily life",
+            action: () => navigate('/kyl'),
+            stats: language === 'hi' ? ["आपराधिक", "नागरिक", "रोजमर्रा"] : ["Criminal", "Civil", "Everyday"],
             tryItNow: t.tryItNow
         },
         {
@@ -160,6 +178,22 @@ export default function Home() {
                     <Link to="/kira" className="hidden md:block text-[10px] font-black tracking-widest text-red-500 hover:text-red-400 border border-red-500/20 bg-red-500/5 px-4 py-2 rounded-lg transition-all hover:bg-red-500/10 hover:border-red-500/40 hover:shadow-[0_0_15px_rgba(239,68,68,0.2)]">
                         KIRA // PERSONA
                     </Link>
+                    {!user ? (
+                        <Link
+                            to="/login"
+                            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-full transition-all"
+                        >
+                            <FaUserCircle className="w-4 h-4" />
+                            <span className="text-sm font-semibold">Sign In</span>
+                        </Link>
+                    ) : (
+                        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
+                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-xs font-bold">
+                                {user.displayName?.charAt(0) || 'U'}
+                            </div>
+                            <span className="text-sm font-semibold">{user.displayName?.split(' ')[0] || 'User'}</span>
+                        </div>
+                    )}
                     <div className="flex gap-2 bg-white/5 backdrop-blur-md rounded-full p-1 border border-white/10">
                         {['en', 'hi'].map((langKey) => (
                             <button
