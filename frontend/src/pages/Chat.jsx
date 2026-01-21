@@ -19,7 +19,7 @@ export default function Chat() {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [selectedCollections, setSelectedCollections] = useState(["ipc", "bns", "mapping"]);
+    const [selectedCollections, setSelectedCollections] = useState(["ipc", "bns", "mapping", "case_law"]);
     const [selectedLanguage, setSelectedLanguage] = useState("en");
     const [copiedId, setCopiedId] = useState(null);
     const messagesEndRef = useRef(null);
@@ -32,16 +32,22 @@ export default function Chat() {
     // Handle incoming query from Home page
     useEffect(() => {
         if (location.state?.query) {
-            handleIncomingQuery(location.state.query);
+            const constitutionMode = location.state?.constitutionMode || false;
+            handleIncomingQuery(location.state.query, constitutionMode);
             // Clear state to prevent re-running on refresh
             window.history.replaceState({}, document.title);
         }
     }, [location.state]);
 
-    const handleIncomingQuery = async (query) => {
+    const handleIncomingQuery = async (query, constitutionMode = false) => {
         // Create a new chat first
         const newChat = await createNewChat();
         if (newChat) {
+            // If constitution mode, override collections
+            if (constitutionMode) {
+                setSelectedCollections(["constitution"]);
+            }
+
             // Slight delay to ensure state updates
             setTimeout(() => {
                 handleSend(query, newChat.id);

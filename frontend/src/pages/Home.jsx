@@ -258,6 +258,30 @@ export default function Home() {
                         </div>
                     </button>
 
+                    {/* CTA 3: Know Your Constitution */}
+                    <button
+                        onClick={() => navigate('/chat', { state: { constitutionMode: true, query: "Tell me about fundamental rights in the Indian Constitution" } })}
+                        className="group relative overflow-hidden rounded-2xl glass-card p-6 hover:bg-white/10 transition-all duration-500 hover:scale-105 hover:shadow-white/5 text-left flex flex-col justify-between w-full md:w-72 h-64"
+                    >
+                        {/* Indian Flag Gradient */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 via-white/5 to-green-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+                        <div className="relative z-10">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 via-white to-green-600 flex items-center justify-center mb-4 shadow-lg">
+                                <span className="text-2xl">🇮🇳</span>
+                            </div>
+                            <h2 className="text-lg font-bold mb-2 text-white group-hover:text-white/90 transition-colors">Know Your Constitution</h2>
+                            <p className="text-neutral-400 group-hover:text-neutral-300 transition-colors text-xs leading-relaxed">
+                                Explore fundamental rights, duties, and the pillars of Indian democracy.
+                            </p>
+                        </div>
+
+                        <div className="relative z-10 flex items-center text-white/50 font-medium group-hover:text-white transition-colors mt-auto">
+                            <span className="uppercase tracking-widest text-[10px]">Explore Constitution</span>
+                            <FaArrowRight className="h-3 w-3 ml-2 transform group-hover:translate-x-1 transition-transform" />
+                        </div>
+                    </button>
+
                 </div>
 
                 {/* Scroll Indicator */}

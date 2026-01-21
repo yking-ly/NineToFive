@@ -57,6 +57,58 @@ class RAGService:
             
             return {"section": section, "section_base": section_base, "context": context}
         return None
+    
+    def calculate_case_relevance_score(self, result: dict) -> float:
+        """
+        Calculate relevance score for a case law result.
+        
+        Combines multiple factors:
+        - Base similarity score from vector search (0-1)
+        - Recency bonus (newer cases +20%)
+        - Landmark status (+30%)
+        - Court level (SC > HC, currently all SC)
+        
+        Args:
+            result: Single search result dict with 'distance' and 'metadata'
+        
+        Returns:
+            Combined relevance score (0-100)
+        """
+        # Base score from similarity (ChromaDB returns distance, lower is better)
+        # Convert distance to similarity: similarity = 1 / (1 + distance)
+        distance = result.get('distance', 1.0)
+        similarity_score = 1.0 / (1.0 + distance)
+        
+        metadata = result.get('metadata', {})
+        
+        # Recency bonus (2024-2025 get boost)
+        year = metadata.get('year', '2020')
+        try:
+            year_int = int(year)
+            if year_int >= 2024:
+                recency_multiplier = 1.2  # 20% boost
+            elif year_int >= 2023:
+                recency_multiplier = 1.1  # 10% boost
+            else:
+                recency_multiplier = 1.0
+        except:
+            recency_multiplier = 1.0
+        
+        # Landmark bonus
+        is_landmark = metadata.get('is_landmark', False)
+        if isinstance(is_landmark, str):
+            is_landmark = is_landmark.lower() in ['true', '1', 'yes']
+        landmark_multiplier = 1.3 if is_landmark else 1.0
+        
+        # Court level (future: High Court gets lower weight)
+        court_level = metadata.get('court_level', 'Supreme Court')
+        court_multiplier = 1.0  # Currently all SC, but ready for HC = 0.8
+        
+        # Combined score (normalized to 0-100)
+        final_score = (similarity_score * recency_multiplier * landmark_multiplier * court_multiplier) * 100
+        
+        return min(final_score, 100.0)  # Cap at 100
+
 
     def query_statutes(self, query_text: str, n_results: int = 3, collections: list = None, language: str = "en"):
         """
@@ -76,9 +128,9 @@ class RAGService:
             language: Language filter - "en" (English), "hi" (Hindi), or "all".
         """
         # Default to all collections if not specified
-        # NOTE: case_law disabled - collection corrupted, needs re-ingestion
+        # NOTE: case_law contains SC judgments from 2023-2025
         if collections is None or len(collections) == 0:
-            collections = ["ipc", "bns", "mapping"]
+            collections = ["ipc", "bns", "mapping", "case_law"]
         
         # Normalize to lowercase
         collections = [c.lower() for c in collections]
@@ -95,6 +147,7 @@ class RAGService:
             "bns": [],
             "mapping": [],
             "case_law": [],
+            "constitution": [],  # Constitution of India
             "quick_mapping": []  # Instant lookup results
         }
         
@@ -246,15 +299,59 @@ class RAGService:
                 
                 if case_res['ids']:
                     for i, doc_id in enumerate(case_res['ids']):
-                        results["case_law"].append({
+                        result_item = {
                             "id": doc_id,
                             "text": case_res['documents'][i],
                             "metadata": case_res['metadatas'][i],
-                            "score": case_res['distances'][i] if case_res['distances'] else 0
-                        })
-                    print(f"[RAG] Case Law: Found {len(case_res['ids'])} relevant cases")
+                            "distance": case_res['distances'][i] if case_res['distances'] else 1.0
+                        }
+                        # Calculate relevance score
+                        result_item["relevance_score"] = self.calculate_case_relevance_score(result_item)
+                        result_item["score"] = result_item["distance"]  # Keep original for compatibility
+                        results["case_law"].append(result_item)
+                    
+                    # Sort by relevance score (higher is better)
+                    results["case_law"].sort(key=lambda x: x.get("relevance_score", 0), reverse=True)
+                    
+                    print(f"[RAG] Case Law: Found {len(case_res['ids'])} relevant cases, sorted by relevance")
+                    # Print top 3 scores for debugging
+                    for idx, case in enumerate(results["case_law"][:3]):
+                        is_landmark = case["metadata"].get("is_landmark", False)
+                        landmark_tag = " ⭐ LANDMARK" if is_landmark else ""
+                        print(f"  [{idx+1}] Score: {case['relevance_score']:.1f}/100{landmark_tag} - {case['metadata'].get('case_title', 'Unknown')[:50]}")
             except Exception as e:
                 print(f"[RAG Error] Case Law Query failed: {e}")
+
+        # 5. Search Constitution (if requested)
+        if "constitution" in collections:
+            try:
+                # Build constitution filter based on detected articles
+                constitution_filter = None
+                
+                # Check for Article mentions (e.g., "Article 21", "Article 14")
+                import re
+                article_pattern = r'Article\s+(\d+[A-Z]?)'
+                articles_found = re.findall(article_pattern, query_text, re.IGNORECASE)
+                
+                if articles_found:
+                    # Search for chunks mentioning these articles
+                    article_num = articles_found[0]  # Use first article found
+                    constitution_filter = {"articles_mentioned": {"$contains": article_num}}
+                    print(f"[RAG] Constitution filter: Article {article_num}")
+                
+                const_res = self.chroma.query("constitution", query_text, n_results, where=constitution_filter)
+                
+                if const_res['ids']:
+                    for i, doc_id in enumerate(const_res['ids']):
+                        results["constitution"].append({
+                            "id": doc_id,
+                            "text": const_res['documents'][i],
+                            "metadata": const_res['metadatas'][i],
+                            "score": const_res['distances'][i] if const_res['distances'] else 0
+                        })
+                    print(f"[RAG] Constitution: Found {len(const_res['ids'])} relevant articles/sections")
+            except Exception as e:
+                print(f"[RAG Error] Constitution Query failed: {e}")
 
         # =====================================================================
         # CACHE STORE: Save results for future requests

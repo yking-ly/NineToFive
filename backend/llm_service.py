@@ -174,16 +174,41 @@ class OllamaService:
         
         # Add Case Law context for precedents
         if context.get("case_law"):
-            for item in context["case_law"][:2]:  # Top 2 cases
+            for item in context["case_law"][:2]:  # Top 2 cases by relevance
                 meta = item.get("metadata", {})
                 case_title = meta.get("case_title", "Unknown Case")
                 case_date = meta.get("case_date", "")
                 year = meta.get("year", "")
                 sections = meta.get("sections_mentioned", "")
+                
+                # Check if landmark
+                is_landmark = meta.get("is_landmark", False)
+                if isinstance(is_landmark, str):
+                    is_landmark = is_landmark.lower() in ['true', '1', 'yes']
+                
+                landmark_badge = "⭐ LANDMARK JUDGMENT" if is_landmark else "Case Law"
+                relevance_score = item.get("relevance_score", 0)
+                
                 context_parts.append(
-                    f"[CASE LAW] {case_title} ({case_date or year})\n"
+                    f"[{landmark_badge}] {case_title} ({case_date or year}) [Relevance: {relevance_score:.0f}/100]\n"
                     f"Sections referenced: {sections}\n"
                     f"Excerpt: {item.get('text', '')[:400]}"
+                )
+        
+        # Add Constitution context
+        if context.get("constitution"):
+            for item in context["constitution"][:3]:  # Top 3 articles/sections
+                meta = item.get("metadata", {})
+                articles = meta.get("articles_mentioned", "")
+                parts = meta.get("parts_mentioned", "")
+                
+                article_info = f"Articles: {articles}" if articles else ""
+                part_info = f"Part: {parts}" if parts else ""
+                location = " | ".join(filter(None, [article_info, part_info]))
+                
+                context_parts.append(
+                    f"[CONSTITUTION OF INDIA] {location}\n"
+                    f"Excerpt: {item.get('text', '')[:500]}"
                 )
         
         context_str = "\n\n".join(context_parts)
